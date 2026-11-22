@@ -1,26 +1,28 @@
 # PixelFX for Unity
 
-Procedural pixel art effects for Unity 2022.3 LTS and newer. The package includes Heavy Cleave, Fireball Throw, and the original Shuriken.
+**简体中文** · [English](README.en.md)
 
-## Open the demo
+适用于 Unity 2022.3 LTS 及更新版本的程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
 
-Open the repository root in Unity. Choose **Tools > PixelFX > Open Demo**. If prompted, let Unity import and compile the sample, then open the menu again. Enter Play Mode and use the buttons to switch effects. The original **Open Heavy Cleave Demo** also remains available.
+## 安装与运行样例
 
-For an existing project, use **Window > Package Manager > + > Add package from git URL**, then enter:
+克隆仓库后，用 Unity 打开仓库根目录，选择 **Tools > PixelFX > Open Demo**。首次打开时，等样例导入和编译完成后再点一次菜单。进入 Play Mode 后可用按钮切换三个特效。也可以通过 **Open Heavy Cleave Demo** 打开原有的重劈样例。
+
+在已有的 Unity 项目中，打开 **Window > Package Manager > + > Add package from git URL**，输入以下地址。
 
 ```text
 https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.unity#v0.1.0
 ```
 
-For a local checkout, use **Add package from disk** and select `Packages/com.pixelfx.unity/package.json`. Open the demo from the Tools menu or import **PixelFX Demo** from the package's Samples tab.
+从本地克隆的仓库安装时，选择 **Add package from disk**，并选中 `Packages/com.pixelfx.unity/package.json`。安装后可从 Tools 菜单打开样例，也可在该包的 **Samples** 标签页导入 **PixelFX Demo**。
 
-## Preview and author variants
+## 预览与保存变体
 
-Open **Tools > PixelFX > Effect Library**. Search the grid by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
+打开 **Tools > PixelFX > Effect Library**。可以按特效名称、ID、类别或变体名称搜索网格。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 可在 `Assets` 下创建变体资产，点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
 
-## Play from code
+## 在代码中播放特效
 
-Add a `PixelFxPlayer` component. Reference a saved `PixelFxVariant` in the field below, or pass an ID from `PixelFxLibrary` to play the defaults.
+添加 `PixelFxPlayer` 组件，将已保存的 `PixelFxVariant` 资产赋给下方示例中的字段。也可以传入 `PixelFxLibrary` 中的特效 ID，使用默认参数播放。
 
 ```csharp
 using PixelFx;
@@ -45,13 +47,25 @@ public sealed class FireballExample : MonoBehaviour
 }
 ```
 
-Flight speed is in Unity units per effect second. Settings and target positions are copied when playback starts. Passing no hit list creates one full-strength impact at the landing point. Pass an empty list to omit impacts. `PixelFxPlayer.DefaultQuality` sets the global default and `PixelFxContext.Quality` overrides it per playback. **Full** draws all layers, **Simplified** omits decorative particles, and **Off** keeps timing and completion while allocating no render surfaces. Use `Stop()` on the returned handle to cancel playback.
+飞行速度以每特效秒移动的 Unity 单位数计。播放开始时会复制参数和目标位置。省略命中列表时，会在落点播放一次全强度爆炸。传入空列表可跳过爆炸。`PixelFxPlayer.DefaultQuality` 设置全局默认质量，`PixelFxContext.Quality` 可覆盖单次播放的质量。**Full** 绘制所有图层，**Simplified** 省略装饰粒子，**Off** 保留阶段时序与播放完成行为，同时跳过渲染资源分配。调用播放句柄的 `Stop()` 可中止播放。
 
-## Migration progress
+## 移植进度
 
-On Unity 2022.3.62f3 Windows editor in headless batch mode, Heavy Cleave averaged the following CPU work per 30 FPS effect sample. Texture submission measures the CPU call without a graphics device.
+移植以 [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826) 为基准。已通过上游画面对照验收的特效为 **1 / 244**，即 Heavy Cleave。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[完整移植清单](docs/migration.md)
 
-| Quality | Instances | Simulation and raster | Texture submission |
+- [x] 运行时播放、特效库预览、变体持久化和质量档
+- [x] 移植 Heavy Cleave，制作原创 Shuriken
+- [x] 实现 Fireball Throw 的施法、按距离飞行与多目标命中
+- [ ] 对照上游画面，完善 Fireball Throw 各阶段的视觉表现
+- [ ] 移植近战和命中特效，再移植投射物和组合动作
+- [ ] 移植元素和状态特效，再移植环境、生物和 UI 特效
+- [ ] 添加可复用的角色遮罩、动作时序与精灵前后分层
+
+## 性能数据
+
+在 Windows 上使用 Unity 2022.3.62f3 无图形批处理模式测试 Heavy Cleave。下表为特效以 30 FPS 采样时，每次采样的平均 CPU 耗时。纹理提交列记录无图形设备时提交调用的 CPU 耗时。
+
+| 质量档 | 实例数 | 模拟与光栅化 | 纹理提交 |
 | --- | ---: | ---: | ---: |
 | Full | 1 | 3.609 ms | 0.017 ms |
 | Full | 10 | 34.530 ms | 0.159 ms |
@@ -60,18 +74,8 @@ On Unity 2022.3.62f3 Windows editor in headless batch mode, Heavy Cleave average
 | Simplified | 10 | 28.192 ms | 0.155 ms |
 | Simplified | 30 | 80.382 ms | 0.422 ms |
 
-The measured playback samples allocated 0 managed bytes after initialization. The editor command **Tools > PixelFX > Measure Quality (1, 10, 30)** repeats this benchmark.
+初始化后的采样阶段，托管内存分配为 0 字节。可通过 **Tools > PixelFX > Measure Quality (1, 10, 30)** 复测。
 
-### Upstream checklist
+## 制作规范与许可
 
-Baseline [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826). **1 / 244 verified against the upstream look**, plus **1 gameplay-adapted move** and **1 original effect**. See the [effect checklist](docs/migration.md) for acceptance status.
-
-- [x] Runtime playback, library preview, serialized variants, and quality levels
-- [x] Heavy Cleave and original Shuriken
-- [x] Fireball Throw with spatial cast, travel, and multiple impacts
-- [ ] Refine Fireball Throw against the upstream stage art
-- [ ] Port melee and impacts, then projectiles and chained moves
-- [ ] Port elemental and status effects, then environment, creatures, and UI
-- [ ] Add reusable actor masks, action timing, and front/back sprite layers
-
-The [authoring guide](docs/authoring.md) and [Codex skill](skills/pixelfx-unity/SKILL.md) live with the project. Runtime and editor code are MIT licensed. Credits for the upstream recipes are included in the package's license and notices.
+运行时和编辑器代码采用 MIT 许可。包内的许可和署名文件记录了上游特效代码的归属。[特效制作规范](docs/authoring.md) · [Codex 技能](skills/pixelfx-unity/SKILL.md)
