@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace PixelFx.Editor
 {
@@ -28,7 +29,7 @@ namespace PixelFx.Editor
             public bool secondaryTarget;
             public Vector3 effectPosition;
             public Vector3 effectRotation;
-            public float effectScale;
+            public Vector3 effectScale;
         }
 
         [SerializeField] private string selectedId = PixelFxLibrary.HeavyCleave;
@@ -42,7 +43,9 @@ namespace PixelFx.Editor
         [SerializeField] private bool actorIsTarget;
         [SerializeField] private Vector3 previewEffectPosition;
         [SerializeField] private Vector3 previewEffectRotation;
-        [SerializeField] private float previewEffectScale = 1;
+        [SerializeField] private Vector3 previewEffectScaleAxes = Vector3.one;
+        [SerializeField, HideInInspector, FormerlySerializedAs("previewEffectScale")]
+        private float legacyPreviewEffectScale;
         [SerializeField] private PreviewCamera previewCamera = new PreviewCamera();
         private readonly Dictionary<string, Texture2D> thumbnails = new Dictionary<string, Texture2D>();
         private readonly List<PixelFxVariant> variants = new List<PixelFxVariant>();
@@ -60,6 +63,11 @@ namespace PixelFx.Editor
 
         private void OnEnable()
         {
+            if (legacyPreviewEffectScale > 0)
+            {
+                previewEffectScaleAxes = Vector3.one * legacyPreviewEffectScale;
+                legacyPreviewEffectScale = 0;
+            }
             minSize = new Vector2(700, 420);
             RefreshVariants();
             Select(selectedId, selectedVariant);
@@ -224,7 +232,7 @@ namespace PixelFx.Editor
                 preview.SetActor(source);
                 loadedActor = source;
             }
-            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScale);
+            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScaleAxes);
             preview.SetEffect(selectedId, draft, targetDistance, splash, quality, actorIsTarget);
             time = Mathf.Clamp(time, 0, preview.Duration);
             Repaint();
@@ -436,7 +444,7 @@ namespace PixelFx.Editor
                     secondaryTarget = splash,
                     effectPosition = previewEffectPosition,
                     effectRotation = previewEffectRotation,
-                    effectScale = previewEffectScale,
+                    effectScale = previewEffectScaleAxes,
                 },
             };
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(snapshot, true);
@@ -528,13 +536,13 @@ namespace PixelFx.Editor
             EditorGUI.BeginChangeCheck();
             previewEffectPosition = EditorGUILayout.Vector3Field("Position", previewEffectPosition);
             previewEffectRotation = EditorGUILayout.Vector3Field("Rotation", previewEffectRotation);
-            previewEffectScale = EditorGUILayout.Slider("Scale Multiplier", previewEffectScale, 0.05f, 20);
+            previewEffectScaleAxes = EditorGUILayout.Vector3Field("Scale Multiplier", previewEffectScaleAxes);
             if (EditorGUI.EndChangeCheck()) ApplyPreviewPlacement();
         }
 
         private void ApplyPreviewPlacement()
         {
-            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScale);
+            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScaleAxes);
             Repaint();
         }
 
@@ -542,7 +550,7 @@ namespace PixelFx.Editor
         {
             previewEffectPosition = Vector3.zero;
             previewEffectRotation = Vector3.zero;
-            previewEffectScale = 1;
+            previewEffectScaleAxes = Vector3.one;
         }
 
         private void FramePreview()

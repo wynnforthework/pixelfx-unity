@@ -176,10 +176,10 @@ namespace PixelFx.Editor
             FramePlacement();
         }
 
-        internal void SetPlacement(Vector3 position, Vector3 rotation, float scale)
+        internal void SetPlacement(Vector3 position, Vector3 rotation, Vector3 scale)
         {
             effectSpace.SetLocalPositionAndRotation(position, Quaternion.Euler(rotation));
-            effectSpace.localScale = Vector3.one * scale;
+            effectSpace.localScale = scale;
         }
 
         internal void FramePlacement()

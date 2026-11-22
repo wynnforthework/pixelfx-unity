@@ -104,7 +104,7 @@ namespace PixelFx
                     obj.hideFlags = HideFlags.HideAndDontSave;
                     UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(obj, sortedParent.gameObject.scene);
                 }
-                obj.transform.SetParent(parent, true);
+                obj.transform.SetParent(effectSpace != null ? effectSpace : parent, effectSpace == null);
                 obj.transform.localScale = Vector3.one * timeline.Settings.scale;
                 var renderer = obj.AddComponent<SpriteRenderer>();
                 var surface = new PixelFxSurface(timeline, true);
@@ -147,7 +147,8 @@ namespace PixelFx
             {
                 if (actor == null)
                 {
-                    if (renderer.transform.parent != parent) renderer.transform.SetParent(parent, false);
+                    if (effectSpace == null && renderer.transform.parent != parent)
+                        renderer.transform.SetParent(parent, false);
                     renderer.sortingLayerID = layerId;
                     renderer.sortingOrder = order;
                 }
@@ -155,7 +156,8 @@ namespace PixelFx
                 {
                     var group = PixelFxActorBinding.SortingGroupFor(actor.transform);
                     // Sort outside the actor's group, even if the player is on the actor itself.
-                    if (renderer.transform.parent != sortedParent) renderer.transform.SetParent(sortedParent, false);
+                    if (effectSpace == null && renderer.transform.parent != sortedParent)
+                        renderer.transform.SetParent(sortedParent, false);
                     renderer.sortingLayerID = group != null ? group.sortingLayerID : actor.sortingLayerID;
                     int actorOrder = group != null ? group.sortingOrder : actor.sortingOrder;
                     int layerOffset = behind ? -1 : 1;
@@ -170,9 +172,8 @@ namespace PixelFx
                 }
                 if (effectSpace != null)
                 {
-                    point = effectSpace.TransformPoint(point);
-                    rotation = effectSpace.rotation * rotation;
-                    renderer.transform.localScale = effectSpace.localScale * timeline.Settings.scale;
+                    renderer.transform.SetLocalPositionAndRotation(point, rotation);
+                    return;
                 }
                 renderer.transform.SetPositionAndRotation(point, rotation);
             }
