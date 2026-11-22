@@ -47,6 +47,7 @@ namespace PixelFx
     {
         public const string HeavyCleave = "melee/heavy-cleave";
         public const string FireballThrow = "moves/fireball-throw";
+        public const string Fireball = "fire/fireball";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -69,6 +70,10 @@ namespace PixelFx
                 (HeavyCleaveEffect.Width, HeavyCleaveEffect.Height, HeavyCleaveEffect.OriginX, HeavyCleaveEffect.OriginY),
                 HeavyCleaveEffect.CreateRenderer,
                 0x2a0c10, 0x5c1414, 0xa3241a, 0xe0481c, 0xff8a2a, 0xffc23d, 0xfff0a0, 0xffffff),
+            new PixelFxDefinition(Fireball, "Fireball", "Fire", 5, 12f / 30, FireballEffect.Duration,
+                (FireballEffect.Width, FireballEffect.Height, FireballEffect.OriginX, FireballEffect.OriginY),
+                FireballEffect.CreateRenderer,
+                0x4a1712, 0x8a1f17, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff),
             new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f, FireballThrowTimeline.ImpactDuration,
                 (FireballThrowEffect.Width, FireballThrowEffect.Height, FireballThrowEffect.OriginX, FireballThrowEffect.OriginY),
                 FireballThrowEffect.CreateRenderer,

@@ -37,6 +37,8 @@ namespace PixelFx
             }
         }
 
+        internal static double At(int x, int seed) => Hash(Hash(0x9e3779b9, x), seed) / 4294967296.0;
+
         internal static double At(int x, int y, int seed) =>
             Hash(Hash(Hash(0x9e3779b9, x), y), seed) / 4294967296.0;
 

@@ -6,8 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `fire/fireball` | Next | Port the standalone projectile, including its hot head, flame tongues, cooling tail, smoke and embers. Verify the upstream loop, head pivot and direction. Reuse it in Fireball Throw during composite integration. |
-| `explosions/small-explosion` | Pending | Port the blast after Fireball. Inspect its back and front passes and record actor-layer choices before implementation. |
+| `explosions/small-explosion` | Next | Port the 5.4-second blast, including the opening flash, shock fronts, smoke column, debris and scorch. Inspect its back and front passes and record actor-layer choices before implementation. |
 | `moves/fireball-throw` | Comparison complete, visual fidelity pending | Replace the approximate stages with the three verified renderers, then repeat the seeded comparison and check actor overlap in the Layered Fireball Demo. Preserve distance-based timing, the Middle cast and Upper per-target impacts. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
@@ -35,7 +34,7 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**8 / 244 verified** in Unity as of 2026-11-22. Spell Charge is verified as a standalone effect. Fireball and Small Explosion remain to be ported before the three renderers are integrated into Fireball Throw.
+**9 / 244 verified** in Unity as of 2026-11-22. Spell Charge and Fireball are verified as standalone effects. Small Explosion remains to be ported before the three renderers are integrated into Fireball Throw.
 
 Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
@@ -55,6 +54,7 @@ Full and Simplified reproduced all 205 captured frames after a forward and backw
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `fire/fireball` | Unity 2022.3.62f3 package validation and built-in asset playback passed. At seed 5 and 30 FPS, all 36 frames matched upstream alpha on the 136 × 56 canvas with the head pivot (112, 28). RGB differed by at most one 8-bit level except for two pixels on frame 18 with a difference of two. Full and Simplified matched after seeking backward and at the cycle boundary. Simplified keeps the head, flame tongues and glow. Off uses no surfaces. All qualities finish after one 1.2-second cycle at default speed. Runtime checks covered the world anchor and a rotated direction. The standalone effect uses one directional pass. Fireball Throw integration is pending. | [Comparison](media/fireball-comparison.png) · [Unity animation](media/fireball.gif) |
 | `arcane/spell-charge` | Unity 2022.3.62f3 package validation and built-in asset playback passed. At seed 5 and 30 FPS, all 48 frames matched upstream alpha on the 120 × 86 canvas with foot pivot (44, 80). RGB differed by at most one 8-bit level. Full and Simplified reproduced every frame after seeking backward. Simplified keeps the orb, contracting rings, pulse flash and glow. Off uses no surfaces. Each runtime call plays one 1.6-second cycle at default speed. The standalone art draws in front with a foot anchor. The upstream actor poses and Fireball Throw's Middle cast integration remain separate tasks. | [Comparison](media/spell-charge-comparison.png) · [Unity animation](media/spell-charge.gif) |
 | `impacts/hit-flash` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 17, 80 × 64, foot pivot (40, 54), 30 FPS, with the same upstream stand-in in both previews. All 15 actor-composited frames matched alpha and RGB differed by at most one 8-bit level. Full and Simplified reproduce their frames after seeking backward. Runtime checks covered foreground sorting, actor movement, scale and rotation, same-frame sprite changes and flips, unreadable-texture fallback, and cleanup. Simplified retains all flash beats and uses three comic lines instead of seven. Off creates no surfaces. All three qualities complete at 0.5 seconds. The visual Play Mode check remains open in the `Hit Flash` Demo. Gameplay hit pose, hit stop and camera shake remain caller-owned. | [Comparison](media/hit-flash-comparison.png) · [Unity animation](media/hit-flash.gif) |
 | `impacts/ground-slam` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 5, 288 × 208, foot pivot (144, 164), 30 FPS. All 96 playback frames matched upstream alpha and RGB differed by at most one 8-bit level. Full and Simplified reproduced the same frames after seeking backward and forward. Batch validation checked both passes around the actor's sorting order and the contact position after the actor moved. Simplified keeps the crater, cracks, arcs, shock fronts and flash. Off creates no surfaces, and all qualities complete at 3.2 seconds. The in-editor visual overlap check remains open in the `Ground Slam` Demo. | [Comparison](media/ground-slam-comparison.png) · [Unity animation](media/ground-slam.gif) |
@@ -121,7 +121,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [ ] `fire/fire-breath`
 - [ ] `fire/fire-ring`
 - [ ] `fire/fire-tornado`
-- [ ] `fire/fireball`
+- [x] `fire/fireball`
 - [ ] `fire/flame-pillar`
 - [ ] `fire/flamethrower`
 - [ ] `fire/meteor`
