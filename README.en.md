@@ -4,7 +4,7 @@
 
 Procedural pixel art effects for Unity. The package includes Heavy Cleave, Fireball Throw, and the original Shuriken.
 
-**Minimum Unity version is 2022.3 LTS.** The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
+The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
 ## Effect previews
 
