@@ -18,7 +18,7 @@ namespace PixelFx.Editor
             var context = new PixelFxContext { LandingPoint = target, Quality = quality };
             if (splash)
                 context.Hits = new[] { new PixelFxHit(target), new PixelFxHit(target + new Vector3(2.15f, 0.75f), 0.5f) };
-            timeline = new PixelFxTimeline(id, settings, context);
+            timeline = new PixelFxTimeline(id, settings, context, previewActor: true);
             surfaces = new PixelFxSurface[timeline.SurfaceCount];
             for (int i = 0; i < surfaces.Length; i++) surfaces[i] = new PixelFxSurface(timeline, false);
         }

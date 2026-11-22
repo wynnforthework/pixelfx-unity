@@ -11,6 +11,9 @@ namespace PixelFx
         internal readonly PixelFxQuality Quality;
         internal readonly float Duration;
         internal readonly PixelFxDefinition Definition;
+        internal readonly bool PreviewActor;
+        internal readonly int HitSide;
+        internal readonly PixelFxActorMask ActorMask;
         private readonly Vector3 anchor;
         private readonly PixelFxActorBinding binding, castBinding;
         private readonly float angle;
@@ -21,7 +24,7 @@ namespace PixelFx
         internal float CastTime => fireball?.CastTime ?? 0;
         internal float FlightTime => fireball?.FlightTime ?? 0;
 
-        internal PixelFxTimeline(string id, PixelFxSettings settings, PixelFxContext context)
+        internal PixelFxTimeline(string id, PixelFxSettings settings, PixelFxContext context, bool previewActor = false)
         {
             var definition = PixelFxLibrary.Get(id);
             Definition = definition;
@@ -41,10 +44,14 @@ namespace PixelFx
             context ??= new PixelFxContext();
             Quality = context.Quality ?? PixelFxPlayer.DefaultQuality;
             binding = context.Binding;
+            PreviewActor = previewActor;
+            if (id == PixelFxLibrary.HitFlash && binding.Actor != null && Quality != PixelFxQuality.Off)
+                ActorMask = new PixelFxActorMask();
             castBinding = context.CastBinding;
             anchor = binding.PositionOr(context.Position, definition.DefaultActorAnchor);
             Vector2 direction = context.Direction.sqrMagnitude > 0 ? context.Direction.normalized : Vector2.right;
-            angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            HitSide = direction.x < 0 ? -1 : 1;
+            angle = id == PixelFxLibrary.HitFlash ? 0 : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             if (id == PixelFxLibrary.FireballThrow)
             {
                 fireball = new FireballThrowTimeline(context, Settings, direction, angle);

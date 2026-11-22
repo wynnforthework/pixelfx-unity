@@ -117,7 +117,10 @@ namespace PixelFx
                     if (!visible) continue;
 
                     var rotation = Quaternion.Euler(0, 0, angle);
-                    SetPlacement(renderer, binding.Actor, binding.Layer == PixelFxLayer.Lower, point, rotation);
+                    bool actorOverlay = timeline.ActorMask != null;
+                    SetPlacement(renderer, binding.Actor, !actorOverlay && binding.Layer == PixelFxLayer.Lower, point, rotation);
+                    if (actorOverlay)
+                        HitFlashEffect.PlaceOverlay(renderer, binding.Actor, timeline.Settings.scale);
                     surface.Draw(stage, localTime, strength, split ? PixelFxRenderPass.Front : PixelFxRenderPass.Combined);
                     if (!split) continue;
 

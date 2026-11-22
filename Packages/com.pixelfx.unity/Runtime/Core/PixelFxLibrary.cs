@@ -49,6 +49,7 @@ namespace PixelFx
         public const string FireballThrow = "moves/fireball-throw";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
+        public const string HitFlash = "impacts/hit-flash";
         public const string Parry = "impacts/parry";
         public const string BluntHit = "impacts/blunt-hit";
         public const string CriticalHit = "impacts/crit-hit";
@@ -76,6 +77,10 @@ namespace PixelFx
                 (HitSparkEffect.Width, HitSparkEffect.Height, HitSparkEffect.OriginX, HitSparkEffect.OriginY),
                 HitSparkEffect.CreateRenderer,
                 0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffe26b, 0xfff3a6, 0xffffff),
+            new PixelFxDefinition(HitFlash, "Hit Flash", "Impacts", 17, 2f / 30, HitFlashEffect.Duration,
+                (HitFlashEffect.Width, HitFlashEffect.Height, HitFlashEffect.OriginX, HitFlashEffect.OriginY),
+                HitFlashEffect.CreateRenderer,
+                0x14040a, 0x3a0a14, 0x6a101c, 0xa01824, 0xd42a30, 0xff5a50, 0xff9a8a),
             new PixelFxDefinition(Parry, "Parry", "Impacts", 11, 2f / 30, ParryEffect.Duration,
                 (ParryEffect.Width, ParryEffect.Height, ParryEffect.OriginX, ParryEffect.OriginY),
                 ParryEffect.CreateRenderer,

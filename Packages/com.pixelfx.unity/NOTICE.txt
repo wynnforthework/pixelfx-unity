@@ -1,4 +1,4 @@
-Heavy Cleave, Hit Spark, Parry, Blunt Hit, Critical Hit, Ground Slam, and the Fireball Throw adaptation draw on Patch PixelFX:
+Heavy Cleave, Hit Spark, Hit Flash and its preview actor, Parry, Blunt Hit, Critical Hit, Ground Slam, and the Fireball Throw adaptation draw on Patch PixelFX:
 https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826
 
 The crescent, hit spark, parry star and arcs, blunt hit dust and clods, critical hit star and sparks, ground slam rocks and dust, spell charge, and explosion recipes originate in part from Hugo Duprez's open-source Sprite Fusion VFX:

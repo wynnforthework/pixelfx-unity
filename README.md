@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Ground Slam（震地）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Hit Flash（受击闪白）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Ground Slam（震地）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
 
 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
 
@@ -70,11 +70,13 @@ public sealed class FireballExample : MonoBehaviour
 
 同一面板的 **Ground Slam** 在角色脚下播放冲击。使用 `new PixelFxActorBinding(actor, PixelFxLayer.Middle, follow: false)` 可在脚底固定落点，让地裂、尘柱和远弧在角色身后绘制，近弧和碎石在身前绘制。
 
+点击 **Hit Flash** 查看角色的白闪、红闪和描边。用 `new PixelFxActorBinding(actor, PixelFxLayer.Upper, chestAnchor)` 绑定受击者，可选的 `chestAnchor` 定位冲击线。轮廓贴合角色当前的精灵与尺寸，精灵纹理需启用 **Read/Write**。无可用遮罩时仍播放冲击火花和闪光。Effect Library 使用内置测试角色预览。
+
 通过 `PixelFxActorBinding` 绑定一个角色的 `SpriteRenderer`。单段效果使用 `PixelFxContext.Binding`，施法使用 `CastBinding`，每次命中使用各自的 `PixelFxHit.Binding`。`Lower` 默认锚定脚底并在角色后方，`Middle` 默认锚定身体中心并使用效果提供的前后两道绘制，`Upper` 默认锚定头顶并在角色前方。锚点可通过 `Transform` 覆盖，例如把前景爆炸放在身体中心。位置默认跟随角色，设置 `follow: false` 可使用播放开始时的位置。详见[制作规范](docs/authoring.md#actor-relative-effect-layers)。
 
 ## 移植进度
 
-移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **6 / 244**，包括 Heavy Cleave、Hit Spark、Parry、Blunt Hit、Critical Hit 和 Ground Slam。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **7 / 244**，包括 Heavy Cleave、Hit Spark、Hit Flash、Parry、Blunt Hit、Critical Hit 和 Ground Slam。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Hit Flash 动图](docs/media/hit-flash.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken

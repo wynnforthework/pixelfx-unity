@@ -10,7 +10,21 @@ namespace PixelFx
         private Texture2D texture;
         private Color32[] pixels;
         private int width, height;
+        private float sourcePixelsPerUnit;
+        private Vector2 sourcePivot;
         private bool flipX, flipY;
+        internal int Version { get; private set; }
+
+        internal PixelFxActorMask() { }
+
+        internal PixelFxActorMask(Color32[] pixels, int width, int height, float pixelsPerUnit, Vector2 pivot)
+        {
+            this.pixels = pixels;
+            this.width = width;
+            this.height = height;
+            sourcePixelsPerUnit = pixelsPerUnit;
+            sourcePivot = pivot;
+        }
 
         internal bool Update(SpriteRenderer actor) =>
             actor != null && actor.drawMode == SpriteDrawMode.Simple
@@ -19,23 +33,28 @@ namespace PixelFx
 
         internal bool Update(Sprite next, bool horizontalFlip, bool verticalFlip)
         {
-            flipX = horizontalFlip;
-            flipY = verticalFlip;
             var nextTexture = next != null ? next.texture : null;
             if (nextTexture == null || !nextTexture.isReadable || next.associatedAlphaSplitTexture != null)
             {
+                if (pixels != null) Version++;
                 sprite = null;
                 texture = null;
                 pixels = null;
                 return false;
             }
+            if (flipX != horizontalFlip || flipY != verticalFlip) Version++;
+            flipX = horizontalFlip;
+            flipY = verticalFlip;
             if (next == sprite && nextTexture == texture) return true;
 
+            Version++;
             sprite = next;
             texture = nextTexture;
             pixels = null;
             width = Mathf.RoundToInt(sprite.rect.width);
             height = Mathf.RoundToInt(sprite.rect.height);
+            sourcePixelsPerUnit = sprite.pixelsPerUnit;
+            sourcePivot = sprite.pivot;
             pixels = ReadSpritePixels();
             return true;
         }
@@ -114,8 +133,8 @@ namespace PixelFx
 
         private (double X, double Y, double Step) GridAt(double pivotX, double pivotY, double pixelsPerUnit)
         {
-            double step = pixelsPerUnit / sprite.pixelsPerUnit;
-            Vector2 pivot = sprite.pivot;
+            double step = pixelsPerUnit / sourcePixelsPerUnit;
+            Vector2 pivot = sourcePivot;
             return (pivotX + (flipX ? pivot.x - width : -pivot.x) * step,
                 pivotY + (flipY ? -pivot.y : pivot.y - height) * step, step);
         }

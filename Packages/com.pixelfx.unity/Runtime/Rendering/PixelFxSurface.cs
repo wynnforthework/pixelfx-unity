@@ -18,12 +18,16 @@ namespace PixelFx
         internal readonly int Width, Height, OriginX, OriginY;
         private readonly PixelFxLayerRenderer renderFrame;
         private readonly byte[] pixels;
+        private readonly PixelFxTimeline timeline;
+        private int lastActorVersion;
+        private Vector3 lastChest;
         private int lastFrame = -1;
         private PixelFxStage lastStage;
         private PixelFxRenderPass lastPass;
 
         internal PixelFxSurface(PixelFxTimeline timeline, bool needsSprite)
         {
+            this.timeline = timeline;
             var definition = timeline.Definition;
             (Width, Height, OriginX, OriginY) = definition.Canvas;
             pixels = new byte[Width * Height * 4];
@@ -52,12 +56,25 @@ namespace PixelFx
         internal bool Render(PixelFxStage stage, float time, float strength, PixelFxRenderPass pass = PixelFxRenderPass.Combined)
         {
             int frame = Mathf.FloorToInt(Mathf.Max(0, time) * 30 + 0.0001f);
-            if (stage == lastStage && frame == lastFrame && pass == lastPass) return false;
+            int actorVersion = 0;
+            Vector3 chest = default;
+            if (timeline.ActorMask != null)
+            {
+                var binding = timeline.BindingFor(stage, 0);
+                timeline.ActorMask.Update(binding.Actor);
+                actorVersion = timeline.ActorMask.Version;
+                if (binding.Actor != null && binding.Anchor != null)
+                    chest = binding.Actor.transform.InverseTransformPoint(binding.Anchor.position);
+            }
+            if (stage == lastStage && frame == lastFrame && pass == lastPass && actorVersion == lastActorVersion
+                && chest == lastChest) return false;
             using (Raster.Auto())
                 renderFrame(pixels, stage, frame / 30.0, strength, pass);
             lastStage = stage;
             lastFrame = frame;
             lastPass = pass;
+            lastActorVersion = actorVersion;
+            lastChest = chest;
             return true;
         }
 

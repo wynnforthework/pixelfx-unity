@@ -34,12 +34,14 @@ namespace PixelFx.Samples
             if (variant != null && GUILayout.Button("Play Assigned Effect"))
             {
                 current?.Stop();
+                HideActors();
                 current = player.Play(variant, Context());
             }
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Layered Fireball")) PlayLayeredFireball();
             if (GUILayout.Button("Ground Slam")) PlayGroundSlam();
+            if (GUILayout.Button("Hit Flash")) PlayHitFlash();
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
@@ -80,6 +82,19 @@ namespace PixelFx.Samples
                 Binding = new PixelFxActorBinding(caster, PixelFxLayer.Middle, follow: false)
             });
             current.Completed += _ => HideActors();
+        }
+
+        private void PlayHitFlash()
+        {
+            current?.Stop();
+            EnsureActors();
+            caster.enabled = false;
+            target.enabled = true;
+            target.transform.position = transform.position + new Vector3(3.3f, 1.3f, 0);
+            current = player.Play(PixelFxLibrary.HitFlash, context: new PixelFxContext
+            {
+                Binding = new PixelFxActorBinding(target, PixelFxLayer.Upper)
+            });
         }
 
         private void EnsureActors()
@@ -128,7 +143,7 @@ namespace PixelFx.Samples
                 if (inside) pixels[x + y * width] = x < 5 ? new Color32(151, 151, 151, 255) : new Color32(235, 235, 235, 255);
             }
             actorTexture.SetPixels32(pixels);
-            actorTexture.Apply(false, true);
+            actorTexture.Apply(false, false);
             actorSprite = Sprite.Create(actorTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 18);
         }
 

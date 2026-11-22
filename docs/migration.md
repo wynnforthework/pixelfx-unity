@@ -6,8 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/hit-flash` | Next | Bind the foreground flash to the hit actor's current sprite using the shared mask. Port the white, red, rim and cooldown beats, comic lines and lights. Compare seed 17 at 30 FPS using the same actor artwork in Unity and upstream. Verify preview fallback and animated runtime alignment. |
-| `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
+| `moves/fireball-throw` | Next | Compare the Unity cast, flight and blast against the pinned upstream render at seed 1 and 30 FPS. Record intentional gameplay adaptations, identify remaining visual gaps and verify the layered cast and per-target impacts. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
 2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
@@ -34,14 +33,15 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**6 / 244 verified** in Unity as of 2026-11-22. Hit Flash is next.
+**7 / 244 verified** in Unity as of 2026-11-22. Fireball Throw visual comparison is next.
 
-Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet. The Hit Flash port still needs the runtime foreground overlay, editor preview artwork and an upstream frame comparison.
+Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
 Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open. Fireball Throw still needs upstream visual comparison before it counts as a verified port.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `impacts/hit-flash` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 17, 80 × 64, foot pivot (40, 54), 30 FPS, with the same upstream stand-in in both previews. All 15 actor-composited frames matched alpha and RGB differed by at most one 8-bit level. Full and Simplified reproduce their frames after seeking backward. Runtime checks covered foreground sorting, actor movement, scale and rotation, same-frame sprite changes and flips, unreadable-texture fallback, and cleanup. Simplified retains all flash beats and uses three comic lines instead of seven. Off creates no surfaces. All three qualities complete at 0.5 seconds. The visual Play Mode check remains open in the `Hit Flash` Demo. Gameplay hit pose, hit stop and camera shake remain caller-owned. | [Comparison](media/hit-flash-comparison.png) · [Unity animation](media/hit-flash.gif) |
 | `impacts/ground-slam` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 5, 288 × 208, foot pivot (144, 164), 30 FPS. All 96 playback frames matched upstream alpha and RGB differed by at most one 8-bit level. Full and Simplified reproduced the same frames after seeking backward and forward. Batch validation checked both passes around the actor's sorting order and the contact position after the actor moved. Simplified keeps the crater, cracks, arcs, shock fronts and flash. Off creates no surfaces, and all qualities complete at 3.2 seconds. The in-editor visual overlap check remains open in the `Ground Slam` Demo. | [Comparison](media/ground-slam-comparison.png) · [Unity animation](media/ground-slam.gif) |
 | `impacts/crit-hit` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 3, 216 × 136, pivot (84, 106), 30 FPS. Alpha matched all 27 playback frames and RGB differed by at most one 8-bit level. Backward seeks reproduced the same frames. Simplified keeps the starburst, ring and flare. Off uses no surface. All qualities last 0.9 seconds at default speed. Parry remained pixel-identical across 30 frames in both Full and Simplified after extracting shared code. | [Comparison](media/crit-hit-comparison.png) · [Unity animation](media/crit-hit.gif) |
 | `impacts/blunt-hit` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 9, 128 × 88, pivot (64, 72), 30 FPS. Alpha matched across all 27 playback frames. Six pixel samples differed by two 8-bit RGB levels, and all other samples differed by at most one. Re-seeking reproduced the same frames for seeds 9, 17 and 52. Simplified keeps the flash, wedges and glow and skips dust and clods. Off uses no surface. All three qualities last 0.9 seconds at default speed. | [Comparison](media/blunt-hit-comparison.png) · [Unity animation](media/blunt-hit.gif) |
@@ -146,7 +146,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [x] `impacts/crit-hit`
 - [x] `impacts/ground-slam`
 - [ ] `impacts/heavy-landing`
-- [ ] `impacts/hit-flash`
+- [x] `impacts/hit-flash`
 - [x] `impacts/hit-spark`
 - [ ] `impacts/impact-frame`
 - [x] `impacts/parry`
