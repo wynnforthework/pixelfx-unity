@@ -77,6 +77,8 @@ namespace PixelFx.Editor
                 legacyPreviewEffectScale = 0;
             }
             minSize = new Vector2(700, 420);
+            wantsMouseMove = true;
+            wantsMouseEnterLeaveWindow = true;
             RefreshVariants();
             Select(selectedId, selectedVariant, keepBuiltinPreview: true);
             EditorApplication.update += Tick;
@@ -275,6 +277,8 @@ namespace PixelFx.Editor
         private void OnGUI()
         {
             if (preview == null) return;
+            if (Event.current.type == EventType.MouseMove || Event.current.type == EventType.MouseLeaveWindow)
+                Repaint();
             using (new EditorGUILayout.HorizontalScope())
             {
                 DrawGrid();
@@ -320,11 +324,7 @@ namespace PixelFx.Editor
                             if (GUI.Button(tile, new GUIContent("", name + " / " + effect.Category)))
                                 Select(effect.Id, variant);
                             if (Event.current.type != EventType.Repaint) continue;
-                            Rect image = new Rect(tile.x + 3, tile.y + 3, tile.width - 6, 67);
-                            GUI.DrawTexture(image, Thumbnail(effect, variant), ScaleMode.ScaleToFit);
-                            var label = new Rect(tile.x + 6, tile.y + 72, tile.width - 12, 18);
-                            GUI.Label(label, name, EditorStyles.miniLabel);
-                            if (selected) EditorGUI.DrawRect(new Rect(tile.x + 3, tile.yMax - 3, tile.width - 6, 2), new Color(0.35f, 0.68f, 0.92f));
+                            DrawTileArtwork(tile, Thumbnail(effect, variant), name, selected);
                         }
                     }
                 }
@@ -333,6 +333,30 @@ namespace PixelFx.Editor
                         EditorStyles.centeredGreyMiniLabel);
                 EditorGUILayout.EndScrollView();
             }
+        }
+
+        private static void DrawTileArtwork(Rect tile, Texture2D thumbnail, string name, bool selected)
+        {
+            bool dark = EditorGUIUtility.isProSkin;
+            if (!selected && tile.Contains(Event.current.mousePosition) && EditorWindow.mouseOverWindow is EffectLibraryWindow)
+                EditorGUI.DrawRect(new Rect(tile.x + 2, tile.y + 2, tile.width - 4, tile.height - 4),
+                    new Color(1, 1, 1, dark ? 0.06f : 0.18f));
+
+            Rect image = new Rect(tile.x + 3, tile.y + 3, tile.width - 6, 67);
+            GUI.DrawTexture(image, thumbnail, ScaleMode.ScaleToFit);
+            var label = new Rect(tile.x + 6, tile.y + 72, tile.width - 12, 18);
+            if (selected)
+            {
+                var labelFill = dark ? new Color32(49, 74, 101, 255) : new Color32(197, 222, 249, 255);
+                EditorGUI.DrawRect(new Rect(tile.x + 2, label.y - 1, tile.width - 4, label.height + 3), labelFill);
+                var border = dark ? new Color32(101, 175, 247, 255) : new Color32(40, 103, 166, 255);
+                const float thickness = 2;
+                EditorGUI.DrawRect(new Rect(tile.x, tile.y, tile.width, thickness), border);
+                EditorGUI.DrawRect(new Rect(tile.x, tile.yMax - thickness, tile.width, thickness), border);
+                EditorGUI.DrawRect(new Rect(tile.x, tile.y + thickness, thickness, tile.height - 2 * thickness), border);
+                EditorGUI.DrawRect(new Rect(tile.xMax - thickness, tile.y + thickness, thickness, tile.height - 2 * thickness), border);
+            }
+            GUI.Label(label, name, EditorStyles.miniLabel);
         }
 
         private List<(PixelFxDefinition Definition, PixelFxVariant Variant)> CollectMatches()
