@@ -10,12 +10,15 @@ namespace PixelFx.Editor
     {
         private readonly PreviewRenderUtility view;
         private readonly Transform root;
-        private readonly Transform anchor;
+        private readonly Transform effectSpace;
+        private readonly Transform targetAnchor;
         private GameObject actor;
         private Renderer actorRenderer;
         private Bounds actorBounds;
         private Bounds frameBounds;
+        private Bounds effectBounds;
         private PixelFxPlayer.Playback playback;
+        private PixelFxPlayer.Playback bodyPlayback;
         private PixelFxTimeline timeline;
 
         internal float Duration => timeline.Duration;
@@ -38,7 +41,8 @@ namespace PixelFx.Editor
             var container = new GameObject("PixelFX Preview") { hideFlags = HideFlags.HideAndDontSave };
             view.AddSingleGO(container);
             root = container.transform;
-            anchor = CreateChild("Effect Anchor");
+            effectSpace = CreateChild("Effect Placement");
+            targetAnchor = CreateChild("Target Anchor");
         }
 
         private Transform CreateChild(string name)
@@ -117,54 +121,86 @@ namespace PixelFx.Editor
             var secondary = landing + new Vector3(2.15f, 0.75f);
             var context = new PixelFxContext { LandingPoint = landing, Quality = quality };
             if (splash) context.Hits = new[] { new PixelFxHit(landing), new PixelFxHit(secondary, 0.5f) };
-            var origin = Vector3.zero;
+            bool staged = id == PixelFxLibrary.FireballThrow;
+            bool hitFlash = id == PixelFxLibrary.HitFlash;
             if (actor != null)
             {
-                bool staged = id == PixelFxLibrary.FireballThrow;
                 var destination = staged && actorIsTarget ? landing : Vector3.zero;
                 var delta = destination - actor.transform.position;
                 actor.transform.position = destination;
                 actorBounds.center += delta;
                 if (actorRenderer != null)
                 {
-                    var feet = actorBounds.center - Vector3.up * actorBounds.extents.y;
-                    origin = id == PixelFxLibrary.GroundSlam ? feet : actorBounds.center;
-                    anchor.position = origin;
-                    var middle = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Middle, anchor, follow: false);
-                    var upper = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Upper, anchor, follow: false);
+                    var middle = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Middle, root, follow: false);
+                    var upper = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Upper, root, follow: false);
                     if (!staged)
-                        context.Binding = id == PixelFxLibrary.HitFlash ? upper : middle;
+                        context.Binding = hitFlash ? upper : middle;
                     else if (actorIsTarget)
                     {
-                        context.LandingPoint = origin;
+                        targetAnchor.position = landing;
+                        upper = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Upper, targetAnchor, follow: false);
                         context.Hits = splash
-                            ? new[] { new PixelFxHit(origin, 1, upper), new PixelFxHit(secondary, 0.5f) }
-                            : new[] { new PixelFxHit(origin, 1, upper) };
+                            ? new[] { new PixelFxHit(landing, 1, upper), new PixelFxHit(secondary, 0.5f) }
+                            : new[] { new PixelFxHit(landing, 1, upper) };
                     }
                     else
                         context.CastBinding = middle;
                 }
             }
-            timeline = new PixelFxTimeline(id, settings, context, previewActor: actorRenderer == null);
+            bool separateBody = hitFlash && actorRenderer is SpriteRenderer;
+            timeline = new PixelFxTimeline(id, settings, context, previewActor: actorRenderer == null,
+                hitFlashPart: hitFlash && actorRenderer != null ? HitFlashPart.Accents : HitFlashPart.Combined);
             if (timeline.SurfaceCount > 0)
-                playback = new PixelFxPlayer.Playback(timeline, null, root, "Default", 0, sortedParent: root);
+            {
+                playback = new PixelFxPlayer.Playback(timeline, null, root, "Default", separateBody ? 1 : 0,
+                    sortedParent: root, effectSpace: effectSpace);
+                if (separateBody)
+                {
+                    var body = new PixelFxTimeline(id, settings, new PixelFxContext
+                    {
+                        Binding = new PixelFxActorBinding(actorRenderer, PixelFxLayer.Upper),
+                        Quality = quality
+                    }, hitFlashPart: HitFlashPart.Body);
+                    bodyPlayback = new PixelFxPlayer.Playback(body, null, root, "Default", 0, sortedParent: root);
+                }
+            }
 
             var (width, height, x, y) = timeline.Definition.Canvas;
             float scale = timeline.Settings.scale / 32;
             var canvas = new Bounds(new Vector3(width / 2f - x, y - height / 2f) * scale,
                 new Vector3(width, height) * scale);
-            var effectOrigin = id == PixelFxLibrary.FireballThrow && actorIsTarget ? Vector3.zero : origin;
-            canvas.center += effectOrigin;
-            frameBounds = canvas;
-            if (id == PixelFxLibrary.FireballThrow)
+            effectBounds = canvas;
+            if (staged)
                 foreach (var hit in timeline.Hits)
-                    frameBounds.Encapsulate(new Bounds(canvas.center - effectOrigin + hit.Position, canvas.size));
+                    effectBounds.Encapsulate(new Bounds(canvas.center + hit.Position, canvas.size));
+            FramePlacement();
+        }
+
+        internal void SetPlacement(Vector3 position, Vector3 rotation, float scale)
+        {
+            effectSpace.SetLocalPositionAndRotation(position, Quaternion.Euler(rotation));
+            effectSpace.localScale = Vector3.one * scale;
+        }
+
+        internal void FramePlacement()
+        {
+            var center = effectSpace.TransformPoint(effectBounds.center);
+            var x = effectSpace.TransformVector(Vector3.right * effectBounds.extents.x);
+            var y = effectSpace.TransformVector(Vector3.up * effectBounds.extents.y);
+            var size = new Vector3(Mathf.Abs(x.x) + Mathf.Abs(y.x), Mathf.Abs(x.y) + Mathf.Abs(y.y),
+                Mathf.Abs(x.z) + Mathf.Abs(y.z)) * 2;
+            frameBounds = new Bounds(center, size);
             if (actorRenderer != null) frameBounds.Encapsulate(actorBounds);
         }
 
         internal void Sample(float time)
         {
             if (playback == null) return;
+            if (bodyPlayback != null)
+            {
+                bodyPlayback.Time = time;
+                bodyPlayback.Draw();
+            }
             playback.Time = time;
             playback.Draw();
         }
@@ -223,6 +259,8 @@ namespace PixelFx.Editor
         {
             playback?.Dispose();
             playback = null;
+            bodyPlayback?.Dispose();
+            bodyPlayback = null;
         }
 
         public void Dispose()

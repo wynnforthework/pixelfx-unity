@@ -4,6 +4,7 @@ using UnityEngine;
 namespace PixelFx
 {
     internal enum PixelFxStage { Single, Cast, Flight, Impact }
+    internal enum HitFlashPart { Combined, Body, Accents }
 
     internal sealed class PixelFxTimeline
     {
@@ -14,6 +15,7 @@ namespace PixelFx
         internal readonly bool PreviewActor;
         internal readonly int HitSide;
         internal readonly PixelFxActorMask ActorMask;
+        internal readonly HitFlashPart FlashPart;
         private readonly Vector3 anchor;
         private readonly PixelFxActorBinding binding, castBinding;
         private readonly float angle;
@@ -24,7 +26,8 @@ namespace PixelFx
         internal float CastTime => fireball?.CastTime ?? 0;
         internal float FlightTime => fireball?.FlightTime ?? 0;
 
-        internal PixelFxTimeline(string id, PixelFxSettings settings, PixelFxContext context, bool previewActor = false)
+        internal PixelFxTimeline(string id, PixelFxSettings settings, PixelFxContext context, bool previewActor = false,
+            HitFlashPart hitFlashPart = HitFlashPart.Combined)
         {
             var definition = PixelFxLibrary.Get(id);
             Definition = definition;
@@ -45,7 +48,9 @@ namespace PixelFx
             Quality = context.Quality ?? PixelFxPlayer.DefaultQuality;
             binding = context.Binding;
             PreviewActor = previewActor;
-            if (id == PixelFxLibrary.HitFlash && binding.Actor != null && Quality != PixelFxQuality.Off)
+            FlashPart = hitFlashPart;
+            if (id == PixelFxLibrary.HitFlash && binding.Actor != null && Quality != PixelFxQuality.Off
+                && hitFlashPart != HitFlashPart.Accents)
                 ActorMask = new PixelFxActorMask();
             castBinding = context.CastBinding;
             anchor = binding.PositionOr(context.Position, definition.DefaultActorAnchor);

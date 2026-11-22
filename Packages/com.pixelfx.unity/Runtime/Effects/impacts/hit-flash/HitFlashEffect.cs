@@ -23,7 +23,8 @@ namespace PixelFx
             this.timeline = timeline;
             painter.LightStrength = timeline.Settings.glow;
             colors = Array.ConvertAll(timeline.Settings.palette, c => Hex(PixelFxLibrary.Pack(c)));
-            if (timeline.PreviewActor && timeline.ActorMask == null) previewMask = HitFlashPreviewActor.CreateMask();
+            if (timeline.PreviewActor && timeline.ActorMask == null && timeline.FlashPart != HitFlashPart.Accents)
+                previewMask = HitFlashPreviewActor.CreateMask();
             int count = timeline.Quality == PixelFxQuality.Full ? 7 : 3;
             lines = new (double, double, double, double)[count];
             var random = new PixelFxRandom(timeline.Settings.seed);
@@ -72,7 +73,7 @@ namespace PixelFx
             var binding = timeline.BindingFor(PixelFxStage.Single, 0);
             var actor = binding.Actor;
             double px = 0, py = 0, ppu = PixelsPerUnit, cx = 0, cy = PreviewChestY;
-            if (actor != null)
+            if (actor != null && timeline.FlashPart != HitFlashPart.Accents)
             {
                 var layout = ActorLayout(actor);
                 ppu /= layout.Scale;
@@ -92,13 +93,16 @@ namespace PixelFx
             var mask = timeline.ActorMask ?? previewMask;
             DrawBody(mask, px, py, ppu, time);
 
-            double hx = cx + timeline.HitSide * 12, hy = cy - 5;
-            DrawBurst(hx, hy, time);
-            DrawLines(cx, cy, time);
-            double flash = Exp(-time / 0.08);
-            if (flash > 0.02) painter.Glow(cx, cy, 26, time < 0.058 ? White : colors[5], 0.35 * flash);
-            DrawLight(hx, hy, 34, White, 0.6, 0.1, time);
-            DrawLight(cx, cy, 30, colors[4], 0.5, 0.35, time);
+            if (timeline.FlashPart != HitFlashPart.Body)
+            {
+                double hx = cx + timeline.HitSide * 12, hy = cy - 5;
+                DrawBurst(hx, hy, time);
+                DrawLines(cx, cy, time);
+                double flash = Exp(-time / 0.08);
+                if (flash > 0.02) painter.Glow(cx, cy, 26, time < 0.058 ? White : colors[5], 0.35 * flash);
+                DrawLight(hx, hy, 34, White, 0.6, 0.1, time);
+                DrawLight(cx, cy, 30, colors[4], 0.5, 0.35, time);
+            }
             painter.FadeLightEdges();
             painter.Composite(pixels, true, false);
         }

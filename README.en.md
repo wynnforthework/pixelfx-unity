@@ -36,6 +36,8 @@ Drag with the left or middle mouse button to pan, scroll to zoom, and drag with 
 
 Drag a scene object from the Hierarchy or a prefab from the Project window into **Actor**. The preview scene uses a copy and supports sprite renderers, static and skinned meshes, and Spine SkeletonRenderer objects through the project's existing spine-unity runtime. Choose **Caster** or **Target** for Fireball Throw. The character holds a static pose while the timeline controls the effect. Hit Flash recolors the silhouette of a readable sprite and keeps its impact accents on other renderers.
 
+Use **Preview Transform** in the bottom settings panel to edit the effect's position, rotation and scale multiplier. Each effect starts at the scene origin with the actor as a visual reference. Use **Reset** to restore zero position and rotation and a scale of one. Use **Frame** to fit the placed effect and actor. The transform applies to Fireball Throw's full path and to Hit Flash's impact accents. Hit Flash's silhouette remains aligned with the reference sprite. Preview transforms belong to the editor view. Variants store effect parameters.
+
 Click **Copy for AI** in the preview toolbar to copy the selected effect ID, asset path, unsaved settings, and preview state. Paste the text into Codex with your requested changes.
 
 ## Play from code

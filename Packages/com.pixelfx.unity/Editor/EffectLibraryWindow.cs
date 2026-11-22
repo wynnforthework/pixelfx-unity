@@ -26,6 +26,9 @@ namespace PixelFx.Editor
             public float timeSeconds;
             public float targetDistance;
             public bool secondaryTarget;
+            public Vector3 effectPosition;
+            public Vector3 effectRotation;
+            public float effectScale;
         }
 
         [SerializeField] private string selectedId = PixelFxLibrary.HeavyCleave;
@@ -37,6 +40,9 @@ namespace PixelFx.Editor
         [SerializeField] private bool splash = true;
         [SerializeField] private GameObject previewActor;
         [SerializeField] private bool actorIsTarget;
+        [SerializeField] private Vector3 previewEffectPosition;
+        [SerializeField] private Vector3 previewEffectRotation;
+        [SerializeField] private float previewEffectScale = 1;
         [SerializeField] private PreviewCamera previewCamera = new PreviewCamera();
         private readonly Dictionary<string, Texture2D> thumbnails = new Dictionary<string, Texture2D>();
         private readonly List<PixelFxVariant> variants = new List<PixelFxVariant>();
@@ -194,7 +200,10 @@ namespace PixelFx.Editor
 
         private void Select(string id, PixelFxVariant variant)
         {
-            selectedId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
+            string nextId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
+            if (selectedId != nextId)
+                ResetPreviewPlacement();
+            selectedId = nextId;
             selectedVariant = variant;
             var effect = PixelFxLibrary.Get(selectedId);
             var asset = variant != null ? variant : AssetDatabase.LoadAssetAtPath<PixelFxVariant>(DefaultAssetPath(effect));
@@ -215,6 +224,7 @@ namespace PixelFx.Editor
                 preview.SetActor(source);
                 loadedActor = source;
             }
+            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScale);
             preview.SetEffect(selectedId, draft, targetDistance, splash, quality, actorIsTarget);
             time = Mathf.Clamp(time, 0, preview.Duration);
             Repaint();
@@ -347,8 +357,8 @@ namespace PixelFx.Editor
                 if (actor != previewActor)
                 {
                     previewActor = actor;
-                    previewCamera.Frame();
                     Rebuild();
+                    FramePreview();
                 }
                 if (previewActor != null && selectedId == PixelFxLibrary.FireballThrow)
                 {
@@ -365,7 +375,7 @@ namespace PixelFx.Editor
                 if (GUILayout.Button(new GUIContent("Front", "Reset camera rotation"), EditorStyles.toolbarButton, GUILayout.Width(42)))
                     previewCamera.Front();
                 if (GUILayout.Button(new GUIContent("Frame", "Center and fit the actor and effect"), EditorStyles.toolbarButton, GUILayout.Width(48)))
-                    previewCamera.Frame();
+                    FramePreview();
             }
             if (previewActor != null && !preview.HasActorRenderer)
                 EditorGUILayout.HelpBox("The selected object needs an active sprite or mesh renderer.", MessageType.Info);
@@ -401,7 +411,7 @@ namespace PixelFx.Editor
                     Repaint();
                     break;
                 case EventType.KeyDown when inside && input.keyCode == KeyCode.F && !EditorGUIUtility.editingTextField:
-                    previewCamera.Frame();
+                    FramePreview();
                     input.Use();
                     Repaint();
                     break;
@@ -424,6 +434,9 @@ namespace PixelFx.Editor
                     timeSeconds = time,
                     targetDistance = targetDistance,
                     secondaryTarget = splash,
+                    effectPosition = previewEffectPosition,
+                    effectRotation = previewEffectRotation,
+                    effectScale = previewEffectScale,
                 },
             };
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(snapshot, true);
@@ -496,8 +509,46 @@ namespace PixelFx.Editor
                     break;
             }
             if (EditorGUI.EndChangeCheck()) Rebuild();
+            DrawPreviewPlacement();
             EditorGUIUtility.labelWidth = originalLabelWidth;
             EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawPreviewPlacement()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUILayout.LabelField("Preview Transform", EditorStyles.boldLabel);
+                if (GUILayout.Button("Reset", GUILayout.Width(55)))
+                {
+                    ResetPreviewPlacement();
+                    ApplyPreviewPlacement();
+                }
+            }
+            EditorGUI.BeginChangeCheck();
+            previewEffectPosition = EditorGUILayout.Vector3Field("Position", previewEffectPosition);
+            previewEffectRotation = EditorGUILayout.Vector3Field("Rotation", previewEffectRotation);
+            previewEffectScale = EditorGUILayout.Slider("Scale Multiplier", previewEffectScale, 0.05f, 20);
+            if (EditorGUI.EndChangeCheck()) ApplyPreviewPlacement();
+        }
+
+        private void ApplyPreviewPlacement()
+        {
+            preview.SetPlacement(previewEffectPosition, previewEffectRotation, previewEffectScale);
+            Repaint();
+        }
+
+        private void ResetPreviewPlacement()
+        {
+            previewEffectPosition = Vector3.zero;
+            previewEffectRotation = Vector3.zero;
+            previewEffectScale = 1;
+        }
+
+        private void FramePreview()
+        {
+            preview.FramePlacement();
+            previewCamera.Frame();
         }
 
         private void SaveVariant(bool update)

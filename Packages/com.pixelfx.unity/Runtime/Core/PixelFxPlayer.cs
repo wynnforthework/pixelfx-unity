@@ -75,15 +75,17 @@ namespace PixelFx
             private readonly (SpriteRenderer Renderer, PixelFxSurface Surface)[] primary, rear;
             private readonly Transform parent;
             private readonly Transform sortedParent;
+            private readonly Transform effectSpace;
             private readonly int layerId, order;
 
             internal Playback(PixelFxTimeline timeline, PixelFxPlayback handle, Transform parent, string layer, int order,
-                Transform sortedParent = null)
+                Transform sortedParent = null, Transform effectSpace = null)
             {
                 this.timeline = timeline;
                 Handle = handle;
                 this.parent = parent;
                 this.sortedParent = sortedParent;
+                this.effectSpace = effectSpace;
                 layerId = SortingLayer.NameToID(layer);
                 this.order = order;
                 primary = new (SpriteRenderer, PixelFxSurface)[timeline.SurfaceCount];
@@ -156,13 +158,21 @@ namespace PixelFx
                     if (renderer.transform.parent != sortedParent) renderer.transform.SetParent(sortedParent, false);
                     renderer.sortingLayerID = group != null ? group.sortingLayerID : actor.sortingLayerID;
                     int actorOrder = group != null ? group.sortingOrder : actor.sortingOrder;
-                    renderer.sortingOrder = Mathf.Clamp(actorOrder + (behind ? -1 : 1), short.MinValue, short.MaxValue);
-                    if (sortedParent != null && !(actor is SpriteRenderer))
+                    int layerOffset = behind ? -1 : 1;
+                    if (effectSpace != null) layerOffset += order;
+                    renderer.sortingOrder = Mathf.Clamp(actorOrder + layerOffset, short.MinValue, short.MaxValue);
+                    if (sortedParent != null && effectSpace == null && !(actor is SpriteRenderer))
                     {
                         var bounds = actor.bounds;
                         if (bounds.size.z > 0.001f)
                             point.z = behind ? bounds.max.z + 0.01f : bounds.min.z - 0.01f;
                     }
+                }
+                if (effectSpace != null)
+                {
+                    point = effectSpace.TransformPoint(point);
+                    rotation = effectSpace.rotation * rotation;
+                    renderer.transform.localScale = effectSpace.localScale * timeline.Settings.scale;
                 }
                 renderer.transform.SetPositionAndRotation(point, rotation);
             }
