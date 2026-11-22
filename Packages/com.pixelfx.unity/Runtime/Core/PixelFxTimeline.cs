@@ -51,7 +51,8 @@ namespace PixelFx
             }
             else
             {
-                Duration = (id == PixelFxLibrary.HeavyCleave ? (float)HeavyCleaveEffect.Duration : 1.2f) / Settings.playbackSpeed;
+                double duration = id == PixelFxLibrary.HeavyCleave ? HeavyCleaveEffect.Duration : ShurikenEffect.Duration;
+                Duration = (float)duration / Settings.playbackSpeed;
             }
         }
 
