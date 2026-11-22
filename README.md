@@ -31,7 +31,7 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 
 ![Unity Effect Library 的特效网格、播放时间轴和参数面板](docs/media/effect-library.png)
 
-打开 **Tools > PixelFX > Effect Library**。可以按特效名称、ID、类别或变体名称搜索网格。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 可在 `Assets` 下创建变体资产，点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
+打开 **Tools > PixelFX > Effect Library**。搜索框上方的 **Built-in** 和 **Variants** 页签分别显示包内特效和已保存的变体。在当前页签中可按特效名称、ID、类别或变体名称搜索。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 会在 `Assets` 下创建变体资产，并切到 **Variants** 页选中新资产。点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
 
 在预览区用左键或中键拖动平移，滚轮缩放，右键或 Alt + 左键拖动旋转视角。**Ortho / Persp** 切换正交与透视，**Front** 恢复正视角，**Frame** 居中并适配角色和特效。
 
