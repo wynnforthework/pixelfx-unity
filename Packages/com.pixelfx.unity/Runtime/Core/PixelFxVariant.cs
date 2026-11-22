@@ -33,15 +33,19 @@ namespace PixelFx
     {
         [SerializeField] private string effectId;
         [SerializeField] private PixelFxSettings settings;
+        [SerializeField, HideInInspector] private bool useLibraryDefaults;
 
         public string EffectId => effectId;
-        public PixelFxSettings Settings => settings?.Copy();
+        public PixelFxSettings Settings => useLibraryDefaults
+            ? PixelFxLibrary.Get(effectId).Defaults()
+            : settings?.Copy();
 
         public void Configure(string id, PixelFxSettings values)
         {
             var definition = PixelFxLibrary.Get(id);
             effectId = definition.Id;
             settings = (values ?? definition.Defaults()).Copy();
+            useLibraryDefaults = false;
         }
     }
 }

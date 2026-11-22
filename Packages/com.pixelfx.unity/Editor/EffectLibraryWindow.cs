@@ -12,6 +12,7 @@ namespace PixelFx.Editor
         {
             public string effectId;
             public string effectName;
+            public string effectAssetPath;
             public string variantAssetPath;
             public PixelFxSettings draftSettings;
             public PreviewSnapshot preview;
@@ -77,12 +78,21 @@ namespace PixelFx.Editor
             foreach (string guid in AssetDatabase.FindAssets("t:PixelFxVariant"))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(AssetDatabase.GUIDToAssetPath(guid));
-                if (asset != null && PixelFxLibrary.Contains(asset.EffectId)) variants.Add(asset);
+                if (asset != null && PixelFxLibrary.Contains(asset.EffectId)
+                    && AssetDatabase.GetAssetPath(asset) != DefaultAssetPath(PixelFxLibrary.Get(asset.EffectId)))
+                    variants.Add(asset);
             }
             variants.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
             ClearThumbnails();
             Repaint();
         }
+
+        internal static string DefaultAssetPath(PixelFxDefinition effect) =>
+            $"Packages/com.pixelfx.unity/Runtime/Effects/{effect.Id}/{effect.Id.Substring(effect.Id.LastIndexOf('/') + 1)}.asset";
+
+        private string SelectedAssetPath(PixelFxDefinition effect) => selectedVariant == null
+            ? DefaultAssetPath(effect)
+            : AssetDatabase.GetAssetPath(selectedVariant);
 
         private void Reload()
         {
@@ -94,8 +104,10 @@ namespace PixelFx.Editor
         {
             selectedId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
             selectedVariant = variant;
-            draft = variant != null ? variant.Settings : PixelFxLibrary.Get(selectedId).Defaults();
-            draft ??= PixelFxLibrary.Get(selectedId).Defaults();
+            var effect = PixelFxLibrary.Get(selectedId);
+            var asset = variant != null ? variant : AssetDatabase.LoadAssetAtPath<PixelFxVariant>(DefaultAssetPath(effect));
+            draft = asset != null ? asset.Settings : null;
+            draft ??= effect.Defaults();
             time = 0;
             playing = false;
             Rebuild();
@@ -213,6 +225,9 @@ namespace PixelFx.Editor
                 if (GUILayout.Button(new GUIContent("Copy for AI", "Copy the selected effect, draft settings and preview state"),
                     EditorStyles.toolbarButton, GUILayout.Width(85)))
                     CopyForAi();
+                if (GUILayout.Button(new GUIContent("Ping Asset", "Locate the selected effect asset in the Project window"),
+                    EditorStyles.toolbarButton, GUILayout.Width(72)))
+                    PingAsset();
                 GUILayout.FlexibleSpace();
                 GUILayout.Label($"{time:F2} / {preview.Duration:F2} s", EditorStyles.miniLabel);
             }
@@ -223,10 +238,12 @@ namespace PixelFx.Editor
 
         private void CopyForAi()
         {
+            var effect = PixelFxLibrary.Get(selectedId);
             var snapshot = new EffectSnapshot
             {
                 effectId = selectedId,
-                effectName = PixelFxLibrary.Get(selectedId).Name,
+                effectName = effect.Name,
+                effectAssetPath = SelectedAssetPath(effect),
                 variantAssetPath = selectedVariant == null ? "" : AssetDatabase.GetAssetPath(selectedVariant),
                 draftSettings = draft,
                 preview = new PreviewSnapshot
@@ -239,6 +256,18 @@ namespace PixelFx.Editor
             };
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(snapshot, true);
             ShowNotification(new GUIContent("Copied for AI"));
+        }
+
+        private void PingAsset()
+        {
+            string path = SelectedAssetPath(PixelFxLibrary.Get(selectedId));
+            var asset = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(path);
+            if (asset != null)
+            {
+                EditorUtility.FocusProjectWindow();
+                EditorGUIUtility.PingObject(asset);
+            }
+            else ShowNotification(new GUIContent("Effect asset not found"));
         }
 
         private void Step(int direction)

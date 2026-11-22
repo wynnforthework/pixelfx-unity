@@ -110,6 +110,23 @@ namespace PixelFx.Editor
             try
             {
                 var player = obj.GetComponent<PixelFxPlayer>();
+                foreach (var effect in PixelFxLibrary.Effects)
+                {
+                    var asset = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(EffectLibraryWindow.DefaultAssetPath(effect));
+                    Check(asset != null && asset.EffectId == effect.Id, "Built-in asset: " + effect.Id);
+                    Check(asset.Settings.seed == effect.Defaults().seed, "Built-in settings: " + effect.Id);
+                    var context = new PixelFxContext { LandingPoint = Target, Quality = PixelFxQuality.Full };
+                    var byId = player.Play(effect.Id, context: context);
+                    var byAsset = player.Play(asset, context);
+                    Check(byId.Duration == byAsset.Duration, "Built-in playback timing: " + effect.Id);
+                    player.Tick(effect.ThumbnailTime);
+                    var idTexture = obj.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite.texture;
+                    var assetTexture = obj.transform.GetChild(1).GetComponent<SpriteRenderer>().sprite.texture;
+                    Check(System.Linq.Enumerable.SequenceEqual(idTexture.GetRawTextureData(), assetTexture.GetRawTextureData()),
+                        "Built-in playback frame: " + effect.Id);
+                    byId.Stop();
+                    byAsset.Stop();
+                }
                 foreach (PixelFxQuality quality in Enum.GetValues(typeof(PixelFxQuality)))
                 {
                     var handle = player.Play(PixelFxLibrary.FireballThrow, context: new PixelFxContext { Quality = quality });

@@ -13,6 +13,8 @@ Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/
 
 Register a unique effect ID, defaults, thumbnail time, canvas bounds, and renderer factory in `Runtime/Core/PixelFxLibrary.cs`. Use existing painter primitives and buffers. Expose only settings that change gameplay readability or appearance. Validate ranges in the timeline and preserve legacy behavior at defaults. Use one shared rendering path for the editor and the runtime.
 
+Include an asset named after the final segment of the effect ID, such as `fireball-throw.asset`, in the effect folder. It can be assigned to the same `PixelFxVariant` field as a user variant. Use a built-in asset as the template, set its name and effect ID, and give the new asset its own Unity GUID. The built-in asset resolves its settings from the C# registry through `useLibraryDefaults`. Saved variants keep a snapshot of their settings.
+
 Full quality may add sparks, smoke and debris. Simplified retains the key shape, travel cues and hit flash. Off schedules timing only. Quality switches must not change duration or completion. Use stable seeds and avoid per-frame allocations in an effect's steady state.
 
 ## Verify
