@@ -221,7 +221,7 @@ namespace PixelFx.Editor
         private void DrawPreview()
         {
             DrawPreviewControls();
-            Rect rect = GUILayoutUtility.GetRect(300, Mathf.Clamp(position.height * 0.42f, 170, 340), GUILayout.ExpandWidth(true));
+            Rect rect = GUILayoutUtility.GetRect(300, position.height * 0.42f, GUILayout.ExpandWidth(true));
             HandlePreviewInput(rect);
             if (Event.current.type == EventType.Repaint) preview.Draw(rect, time, previewCamera);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
