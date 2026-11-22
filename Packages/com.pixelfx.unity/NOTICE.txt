@@ -1,7 +1,7 @@
-Heavy Cleave, Hit Spark, Hit Flash and its preview actor, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, Fireball, and the Fireball Throw adaptation draw on Patch PixelFX:
+Heavy Cleave, Hit Spark, Hit Flash and its preview actor, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, Fireball, Small Explosion, Fireball Throw, and Magic Circle Cast draw on Patch PixelFX:
 https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826
 
-The crescent, hit spark, parry star and arcs, blunt hit dust and clods, critical hit star and sparks, ground slam rocks and dust, spell charge, fire, and explosion recipes originate in part from Hugo Duprez's open-source Sprite Fusion VFX:
+The crescent, hit spark, parry star and arcs, blunt hit dust and clods, critical hit star and sparks, ground slam rocks and dust, spell charge, fire, explosion, and magic circle light column recipes originate in part from Hugo Duprez's open-source Sprite Fusion VFX:
 https://www.spritefusion.com/pixel-art-vfx
 
 See LICENSE.txt for the MIT terms and copyright notices. Shuriken is an original addition.

@@ -56,10 +56,20 @@ namespace PixelFx
         public const string CriticalHit = "impacts/crit-hit";
         public const string GroundSlam = "impacts/ground-slam";
         public const string SpellCharge = "arcane/spell-charge";
+        public const string MagicCircleCast = "arcane/magic-circle-cast";
         public const string SmallExplosion = "explosions/small-explosion";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(MagicCircleCast, "Magic Circle Cast", "Arcane", 6, 51f / 30, MagicCircleCastEffect.Duration,
+                (MagicCircleCastEffect.Width, MagicCircleCastEffect.Height, MagicCircleCastEffect.OriginX, MagicCircleCastEffect.OriginY),
+                MagicCircleCastEffect.CreateRenderer,
+                0x140a26, 0x2b1252, 0x481c88, 0x6b2cc0, 0x9a48ec, 0xc684ff, 0xecc8ff, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = MagicCircleCastEffect.CreateLayerRenderer,
+            },
             new PixelFxDefinition(SmallExplosion, "Small Explosion", "Explosions", 7, 6f / 30, SmallExplosionEffect.Duration,
                 (SmallExplosionEffect.Width, SmallExplosionEffect.Height, SmallExplosionEffect.OriginX, SmallExplosionEffect.OriginY),
                 SmallExplosionEffect.CreateRenderer,
