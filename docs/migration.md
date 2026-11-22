@@ -15,6 +15,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 3. Set the queue status to **In progress** before starting. After implementation, record any unfinished step, dependency, or validation failure directly in the queue before stopping.
 4. Run `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3 and compare representative Full frames against the pinned JavaScript source at the same seed and 30 FPS. Check anchor, duration, the library preview, asset playback, and the Simplified and Off quality levels.
 5. Check a catalog entry when it passes. Store the seed, comparison frames and any intentional differences in the completed entry or a linked evidence file. Update both README totals to match the checked entries. The original Shuriken belongs outside the upstream count.
+6. Follow [the commit rules](../skills/pixelfx-unity/SKILL.md#commit-each-verified-step). Commit the verified port, its evidence and the updated queue together before starting the next effect. Review the staged diff and check `git status --short` after committing.
 
 An unchecked entry without a queue note is pending. Keep upcoming batches small enough to leave a verified checkpoint between them.
 
