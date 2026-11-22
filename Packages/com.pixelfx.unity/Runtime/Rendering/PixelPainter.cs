@@ -32,6 +32,16 @@ namespace PixelFx
             Put((int)Floor(x) + originX, (int)Floor(y) + originY, ink, alpha);
         }
 
+        internal void BlendPixel(double x, double y, uint ink, double alpha) =>
+            Blend((int)Floor(x) + originX, (int)Floor(y) + originY, ink, alpha);
+
+        internal void Light(double x, double y, uint ink, double strength)
+        {
+            int col = (int)Floor(x) + originX, row = (int)Floor(y) + originY;
+            if ((uint)col >= width || (uint)row >= height) return;
+            AddLight(row * width + col, Channel(ink, 0), Channel(ink, 8), Channel(ink, 16), strength * LightStrength);
+        }
+
         internal void Shade(double left, double top, double right, double bottom,
             Func<double, double, (uint Ink, double Alpha)> sample)
         {

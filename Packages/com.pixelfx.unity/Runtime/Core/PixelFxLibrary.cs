@@ -48,6 +48,7 @@ namespace PixelFx
         public const string HeavyCleave = "melee/heavy-cleave";
         public const string FireballThrow = "moves/fireball-throw";
         public const string Fireball = "fire/fireball";
+        public const string FireRing = "fire/fire-ring";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -61,6 +62,15 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(FireRing, "Fire Ring", "Fire", 6, 20f / 30, FireRingEffect.Duration,
+                (FireRingEffect.Width, FireRingEffect.Height, FireRingEffect.OriginX, FireRingEffect.OriginY),
+                FireRingEffect.CreateRenderer,
+                0x4a1712, 0x8a1f17, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = FireRingEffect.CreateLayerRenderer,
+            },
             new PixelFxDefinition(MagicCircleCast, "Magic Circle Cast", "Arcane", 6, 51f / 30, MagicCircleCastEffect.Duration,
                 (MagicCircleCastEffect.Width, MagicCircleCastEffect.Height, MagicCircleCastEffect.OriginX, MagicCircleCastEffect.OriginY),
                 MagicCircleCastEffect.CreateRenderer,

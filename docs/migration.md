@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `fire/fire-ring` | Next | Inspect its pinned drawing passes, pivot, timing and particle dependencies. Record the ring and particle placement around the actor before porting. Verify Middle sorting, quality levels and a seeded visual comparison. |
+| `holy/divine-shield` | Next | Inspect the pinned shield geometry, draw passes and particle dependencies. Record the actor anchor and far and near elements before porting. Verify Middle sorting, all three quality levels and a seeded visual comparison. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
 2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
@@ -28,14 +28,15 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 | `impacts/ground-slam` | Use a foot anchor. Crater, cracks, embers and back particles are Lower. The dust ring is Middle with far and near passes. Shock fronts, rocks, foreground particles and the flash are Upper at the foot anchor. Verify the upstream order with an actor between the passes. |
 | `explosions/small-explosion` | Use a foot anchor. For Middle, smoke, dust, scorch, ground blazes and the far shock front are behind the bound renderer. The near shock front, rocks, hot particles and flash are in front. Placement follows the binding's follow or snapshot setting. Fireball Throw will use the combined art for each Upper impact. |
 | `arcane/magic-circle-cast` | Anchor at the feet. Middle draws the far floor geometry, far runes and light column behind the actor. Near floor geometry, near runes, pen glints, particles and the flash draw in front. Use the bound renderer or sorting group and honor follow or snapshot placement. |
-| `fire/fire-ring`, `holy/divine-shield` | Upstream draws around a center or actor using both passes. Verify the geometry and particle assignment for each effect when it enters the queue. For a ring, put the far arc behind the actor and the near arc in front. |
+| `fire/fire-ring` | Anchor at the feet. Middle draws scorch, the far arc, far flames and smoke behind the bound renderer or sorting group. The near arc, near flames and burst flash draw in front. Flame puffs and embers stay on their source side. The binding controls follow or snapshot placement. Gameplay owns poses, hit stop, shake, impact dust and target charring. |
+| `holy/divine-shield` | Upstream draws around the actor using both passes. Check its shield geometry and particle assignment before porting. |
 | `moves/fireball-throw` | For the requested A-to-B acceptance case, the Middle cast ring follows A and the projectile follows its travel path. Each Upper impact follows its own target at its hit anchor for the full impact phase. Check with A and B moving and using different sorting orders. This is a Unity acceptance case for stage-specific binding and sorting. |
 | `impacts/hit-flash` | Draw the recolor, outline and hit accents in front of the hit actor. Use the sprite pivot for the mask and the chest for the hit accents. Follow the renderer and its current sprite throughout the effect. The game owns the hit pose, hit stop and camera shake. |
 | `melee/heavy-cleave` | Standalone frames are verified. Upstream places the far and near shock-ring halves around the fighter. Revisit actor-overlap playback once shared layering is available. |
 
 ## Latest checkpoint
 
-**12 / 244 verified** in Unity as of 2026-11-22. Magic Circle Cast passed standalone frame comparison and actor-relative sorting checks. Interactive Play Mode checks for Magic Circle Cast, Small Explosion, Ground Slam and Hit Flash remain open.
+**13 / 244 verified** in Unity as of 2026-11-22. Fire Ring passed standalone frame comparison and actor-relative sorting checks. Interactive Play Mode checks for Fire Ring, Magic Circle Cast, Small Explosion, Ground Slam and Hit Flash remain open.
 
 Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
@@ -55,6 +56,7 @@ Full and Simplified reproduced all 205 captured frames after a forward and backw
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `fire/fire-ring` | Unity 2022.3.62f3 package validation, library thumbnail and built-in asset playback passed. Seed 6 at 30 FPS, 224 × 128 canvas with foot pivot (112, 92). All 117 Full frames matched upstream alpha, and RGB differed by at most one 8-bit level per channel. Full and Simplified reproduced every frame after a backward seek. Simplified retains the foot flash, expanding ring, flame tongues and scorch while skipping the particle simulation. Batch playback verified both Middle passes and the shared anchor following a moving actor. All three qualities completed at 3.9 seconds at default speed, and Off created no sprite surfaces. Interactive Play Mode review of actor overlap remains open. | [Comparison](media/fire-ring-comparison.png) · [Unity animation](media/fire-ring.gif) |
 | `arcane/magic-circle-cast` | Unity 2022.3.62f3 package validation, library thumbnail and built-in asset playback passed. Seed 6 at 30 FPS, 200 × 220 canvas with foot pivot (100, 192). All 117 Full frames matched upstream alpha, and each RGB channel differed by at most one 8-bit level. Full and Simplified reproduced all frames after a backward seek. Simplified retains the pen, runes, floor rings, flash, light column and its breakup while omitting the particle simulation. Batch playback checked that both Middle passes render on their respective sides of a moving actor. All qualities complete after 3.9 seconds at default speed. Off creates no sprite surfaces. Visual overlap with a character in interactive Play Mode remains open. | [Comparison](media/magic-circle-cast-comparison.png) · [Unity animation](media/magic-circle-cast.gif) |
 | `explosions/small-explosion` | Unity 2022.3.62f3 package validation and built-in asset playback passed. At seed 7 and 30 FPS, all 162 Full frames matched upstream alpha on the 300 × 240 canvas with foot pivot (150, 196). RGB differed by at most one 8-bit level. Full and Simplified reproduced every frame after backward seeks. Simplified keeps the opening flash, shock fronts, glow and scorch. Batch playback verified both Middle sorting passes, movement with the bound actor, equal 5.4-second completion across all qualities and cleanup. Off creates no surfaces. Interactive Play Mode review of actor overlap remains open. | [Comparison](media/small-explosion-comparison.png) · [Unity animation](media/small-explosion.gif) |
 | `fire/fireball` | Unity 2022.3.62f3 package validation and built-in asset playback passed. At seed 5 and 30 FPS, all 36 frames matched upstream alpha on the 136 × 56 canvas with the head pivot (112, 28). RGB differed by at most one 8-bit level except for two pixels on frame 18 with a difference of two. Full and Simplified matched after seeking backward and at the cycle boundary. Simplified keeps the head, flame tongues and glow. Off uses no surfaces. All qualities finish after one 1.2-second cycle at default speed. Runtime checks covered the world anchor and a rotated direction. The standalone effect uses one directional pass. Fireball Throw integration is pending. | [Comparison](media/fireball-comparison.png) · [Unity animation](media/fireball.gif) |
@@ -122,7 +124,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [ ] `fire/campfire`
 - [ ] `fire/candle`
 - [ ] `fire/fire-breath`
-- [ ] `fire/fire-ring`
+- [x] `fire/fire-ring`
 - [ ] `fire/fire-tornado`
 - [x] `fire/fireball`
 - [ ] `fire/flame-pillar`
