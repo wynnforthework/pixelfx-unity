@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/parry` | Next | Port the blade cross, broken ring and spark fan. Compare seed 11 at 30 FPS. |
+| `impacts/blunt-hit` | Next | Read `src/fx/impacts/blunt-hit.js`, its `_lib.js` helpers and `Bits` in `src/core/sim.js`. Port the impact flash, wedges, dust and clods. Compare seed 9 at 30 FPS. |
 | `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
@@ -20,10 +20,11 @@ An unchecked entry without a queue note is pending. Keep upcoming batches small 
 
 ## Latest checkpoint
 
-**2 / 244 verified** in Unity. Parry is next.
+**3 / 244 verified** in Unity. Blunt Hit is next.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `impacts/parry` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 11, 200 × 112, pivot (100, 96), 30 FPS. All 30 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. Backward seeks reproduced the captured frames. Simplified keeps the blade flash, star and ring. Off uses no surface. All three quality levels last one second at default speed. | [Comparison](media/parry-comparison.png) · [Unity animation](media/parry.gif) |
 | `impacts/hit-spark` | Unity 2022.3.62f3 package validation, quality and backward-seek checks passed. Seed 4, 136 × 80, pivot (44, 64), 30 FPS. All 15 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. | [Comparison](media/hit-spark-comparison.png) · [Unity animation](media/hit-spark.gif) |
 | `melee/heavy-cleave` | Verified in Unity and accepted in Play Mode. | [Comparison](media/heavy-cleave-unity-comparison.gif) |
 
@@ -127,7 +128,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [ ] `impacts/hit-flash`
 - [x] `impacts/hit-spark`
 - [ ] `impacts/impact-frame`
-- [ ] `impacts/parry`
+- [x] `impacts/parry`
 - [ ] `impacts/ricochet`
 - [ ] `impacts/shield-block`
 

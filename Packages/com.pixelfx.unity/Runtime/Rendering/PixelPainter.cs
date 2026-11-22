@@ -146,6 +146,23 @@ namespace PixelFx
             }
         }
 
+        internal void GlowRing(double x, double y, double radius, double width, uint ink, double strength)
+        {
+            if (width < 1 || strength <= 0.004) return;
+            x += originX;
+            y += originY;
+            Bounds(x, y, radius + width, out int left, out int right, out int top, out int bottom);
+            int r = Channel(ink, 0), g = Channel(ink, 8), b = Channel(ink, 16);
+            for (int row = top; row <= bottom; row++)
+            for (int col = left; col <= right; col++)
+            {
+                double dx = col + 0.5 - x, dy = row + 0.5 - y;
+                double falloff = 1 - Abs(Sqrt(dx * dx + dy * dy) - radius) / width;
+                if (falloff > 0)
+                    AddLight(row * this.width + col, r, g, b, strength * falloff * falloff * LightStrength);
+            }
+        }
+
         private void AddLight(int index, int r, int g, int b, double strength)
         {
             if (strength <= 0.004) return;

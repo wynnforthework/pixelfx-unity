@@ -46,6 +46,7 @@ namespace PixelFx
         public const string FireballThrow = "moves/fireball-throw";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
+        public const string Parry = "impacts/parry";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
@@ -65,6 +66,10 @@ namespace PixelFx
                 (HitSparkEffect.Width, HitSparkEffect.Height, HitSparkEffect.OriginX, HitSparkEffect.OriginY),
                 HitSparkEffect.CreateRenderer,
                 0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffe26b, 0xfff3a6, 0xffffff),
+            new PixelFxDefinition(Parry, "Parry", "Impacts", 11, 2f / 30, ParryEffect.Duration,
+                (ParryEffect.Width, ParryEffect.Height, ParryEffect.OriginX, ParryEffect.OriginY),
+                ParryEffect.CreateRenderer,
+                0x2a1a08, 0x6a4410, 0xb07a1a, 0xe8b030, 0xffe066, 0xfff6c4, 0xffffff),
         });
 
         private static readonly Dictionary<string, PixelFxDefinition> ById = BuildIndex();
