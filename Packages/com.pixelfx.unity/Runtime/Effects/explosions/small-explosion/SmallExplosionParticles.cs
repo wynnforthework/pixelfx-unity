@@ -42,14 +42,14 @@ namespace PixelFx
         private int steps;
         private double time;
 
-        internal SmallExplosionParticles(int seed, uint[] colors, SmallExplosionEffect.Stone stone)
+        internal SmallExplosionParticles(int seed, uint[] colors, SmallExplosionEffect.Stone stone, double radius, double size, double power)
         {
             random = new PixelFxRandom(seed);
             this.colors = colors;
             this.stone = stone;
-            initialRocks = new Rock[26];
+            initialRocks = new Rock[(int)Ceiling(26 * Min(1.5, size))];
             rocks = new Rock[initialRocks.Length];
-            Seed();
+            Seed(radius, size, power);
             initialParticles = particles.ToArray();
             initialRocks.CopyTo(rocks, 0);
             initialRandom = random;
@@ -70,10 +70,10 @@ namespace PixelFx
             });
         }
 
-        private void Seed()
+        private void Seed(double rad, double size, double power)
         {
-            const double rad = SmallExplosionEffect.Radius, y = SmallExplosionEffect.CenterY;
-            const double power = 0.9, earth = 1.6;
+            double y = -rad * 0.3;
+            const double earth = 1.6;
             for (int i = 0; i < 5; i++)
                 Spawn(Kind.Fire, random.Range(-2.5, 2.5), y + random.Range(-2.5, 2.5),
                     random.Range(-20, 20), random.Range(-40, -10), random.Range(0.18, 0.3),
@@ -147,7 +147,7 @@ namespace PixelFx
             for (int i = 0; i < Round(earth * 12); i++)
                 Spawn(Kind.Smoke, random.Range(-0.3, 0.3) * rad, -random.Range(2, rad * 0.6), random.Range(-15, 15),
                     -random.Range(60, 190) * earth * 0.6, random.Range(1.6, 2.6), stone.Dust,
-                    random.Range(5, 9) + rad / 7, random.Range(0, 0.15), Flags.Big);
+                    random.Range(5, 9) * Sqrt(size) + rad / 7, random.Range(0, 0.15), Flags.Big);
         }
 
         internal void Advance(double t)

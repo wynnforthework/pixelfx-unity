@@ -84,7 +84,7 @@ namespace PixelFx
                 (FireballEffect.Width, FireballEffect.Height, FireballEffect.OriginX, FireballEffect.OriginY),
                 FireballEffect.CreateRenderer,
                 0x4a1712, 0x8a1f17, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff),
-            new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f, FireballThrowTimeline.ImpactDuration,
+            new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f, SmallExplosionEffect.Duration,
                 (FireballThrowEffect.Width, FireballThrowEffect.Height, FireballThrowEffect.OriginX, FireballThrowEffect.OriginY),
                 FireballThrowEffect.CreateRenderer,
                 0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff)

@@ -13,7 +13,7 @@ Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（�
 
 | Heavy Cleave（重劈） | Fireball Throw（火球投掷） | Shuriken（手里剑） |
 | --- | --- | --- |
-| ![重劈斩击与地面冲击](docs/media/heavy-cleave.gif) | ![火球蓄力、飞行和两处爆炸](docs/media/fireball-throw.gif) | ![旋转飞行的手里剑与粒子拖尾](docs/media/shuriken.gif) |
+| ![重劈斩击与地面冲击](docs/media/heavy-cleave.gif) | ![火球蓄力、飞行与爆炸](docs/media/fireball-throw.gif) | ![旋转飞行的手里剑与粒子拖尾](docs/media/shuriken.gif) |
 
 ## 安装与运行样例
 
@@ -84,12 +84,12 @@ public sealed class FireballExample : MonoBehaviour
 
 ## 移植进度
 
-移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **10 / 244**，包括 Heavy Cleave、Hit Spark、Hit Flash、Parry、Blunt Hit、Critical Hit、Ground Slam、Spell Charge、Fireball 和 Small Explosion。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Hit Flash 动图](docs/media/hit-flash.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif) · [Spell Charge 动图](docs/media/spell-charge.gif) · [Fireball 动图](docs/media/fireball.gif) · [Small Explosion 动图](docs/media/small-explosion.gif)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **11 / 244**，包括 Heavy Cleave、Hit Spark、Hit Flash、Parry、Blunt Hit、Critical Hit、Ground Slam、Spell Charge、Fireball、Small Explosion 和 Fireball Throw。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Hit Flash 动图](docs/media/hit-flash.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif) · [Spell Charge 动图](docs/media/spell-charge.gif) · [Fireball 动图](docs/media/fireball.gif) · [Small Explosion 动图](docs/media/small-explosion.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken
 - [x] 实现 Fireball Throw 的施法、按距离飞行与多目标命中
-- [ ] 对照上游画面，完善 Fireball Throw 各阶段的视觉表现
+- [x] 复用上游蓄力、弹体和爆炸实现 Fireball Throw，并完成三阶段画面对照
 - [ ] 移植近战和命中特效，再移植投射物和组合动作
 - [ ] 移植元素和状态特效，再移植环境、生物和 UI 特效
 - [x] 支持相对角色的下、中、上三层播放

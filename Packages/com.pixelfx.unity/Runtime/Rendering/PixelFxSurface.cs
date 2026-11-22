@@ -22,6 +22,7 @@ namespace PixelFx
         private int lastActorVersion;
         private Vector3 lastChest;
         private int lastFrame = -1;
+        private float lastStrength;
         private PixelFxStage lastStage;
         private PixelFxRenderPass lastPass;
 
@@ -67,12 +68,13 @@ namespace PixelFx
                     chest = binding.Actor.transform.InverseTransformPoint(binding.Anchor.position);
             }
             if (stage == lastStage && frame == lastFrame && pass == lastPass && actorVersion == lastActorVersion
-                && chest == lastChest) return false;
+                && chest == lastChest && strength == lastStrength) return false;
             using (Raster.Auto())
                 renderFrame(pixels, stage, frame / 30.0, strength, pass);
             lastStage = stage;
             lastFrame = frame;
             lastPass = pass;
+            lastStrength = strength;
             lastActorVersion = actorVersion;
             lastChest = chest;
             return true;

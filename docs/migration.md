@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `moves/fireball-throw` | Next | Reuse Spell Charge, Fireball and Small Explosion for cast, flight and impact. Repeat the seeded comparison and check actor overlap in the Layered Fireball Demo. Preserve distance-based timing, the Middle cast and Upper per-target impacts with their individual strengths. |
+| `arcane/magic-circle-cast` | Next | Inspect the pinned source and its dependencies. Record the circle's pivot, far and near arc geometry, particle passes and any actor choreography before porting. Verify Middle sorting and compare at a fixed seed. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
 2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
@@ -34,23 +34,23 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**10 / 244 verified** in Unity as of 2026-11-22. Spell Charge, Fireball and Small Explosion passed standalone verification. Fireball Throw stage integration and visual Play Mode review of character overlap remain open.
+**11 / 244 verified** in Unity as of 2026-11-22. Fireball Throw now uses the verified Spell Charge, Fireball and Small Explosion drawing code. The layered sample was rendered in Unity batch mode. Interactive Play Mode checks for Small Explosion as a standalone Middle effect, Ground Slam and Hit Flash remain open.
 
 Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
-Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open.
+Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Rendered sample frames show both sides of the cast ring around the moving caster and the blast in front of the moving target. [Sample keyframes](media/fireball-throw-layered.png)
 
 ### Fireball Throw comparison
 
-Captured 205 frames per build at seed 1 and 30 FPS through the 6.81-second reference timeline. The [comparison sheet](media/fireball-throw-comparison.png) shows upstream JavaScript, Unity Full and Unity Simplified at frames 15, 34, 46 and 90. The captures exclude actors and align on a 356 × 244 canvas with origin (64, 198). The Unity comparison supplies separate anchors to match the source's charge (15, -22), launch (28, -22), flight endpoint (184.4, -22) and impact (190, 0), in source pixels at 32 pixels per world unit. Upstream uses child seeds 1, 2 and 3. The current Unity stages derive their own particle streams from seed 1. One transparent frame matched in RGBA and alpha.
+Captured 205 frames per build at seed 1 and 30 FPS through the 6.81-second reference timeline. The [comparison sheet](media/fireball-throw-comparison.png) shows upstream JavaScript, Unity Full and Unity Simplified at frames 15, 34, 46 and 90. The captures isolate the effect art on a 356 × 244 canvas with origin (64, 198). The Unity capture supplies anchors to match the source's charge (15, -22), launch (28, -22), flight endpoint (184.4, -22) and impact (190, 0), at 32 pixels per world unit. Both builds use child seeds 1, 2 and 3 and the upstream default stage palettes. Twelve Full frames match exactly in RGBA. At an alpha threshold of 32, mean silhouette overlap (intersection over union) is 73% for cast, 93% for flight and 90% for impact, excluding frames where both silhouettes are empty. Stage-local sampling, movement at the reference subpixel positions and the different canvas edge falloff affect the byte comparison.
 
-| Stage | Visual gaps to resolve |
+| Stage | Unity playback |
 | --- | --- |
-| Cast | Unity starts at time zero and draws three rings around the anchor. Upstream begins the charge at 0.08 seconds and adds tilted rings, spiral streaks, branching arcs and a white core near the hand. Reuse Spell Charge with Unity's Middle layering and support the caller's cast duration. |
-| Flight | Unity has a moving core, a narrow flame band and scattered tail particles. Upstream layers flame tongues, a swirling hot head, a longer broken tail, smoke and embers. Keep the path and flight duration driven by Unity's launch and landing points. |
-| Impact | Unity has separate flashes, thin rings and a short, low smoke cloud. Upstream adds a brighter initial fireball, thick shock fronts, a tall rolling smoke column, rocks, embers, brands and cooling scorch. Retain each hit's strength and Upper sorting. Gameplay owns upstream-style poses, hit stop, shake and charring the actor. |
+| Cast | Spell Charge is centered on the supplied cast anchor. The upstream 0.08-second cue appears on the first available 30 FPS sample. Short casts can reduce the lead-in. Middle splits the tilted rings at the orb's horizontal plane. The orb and charge accents draw in front. |
+| Flight | Fireball follows the launch-to-landing path and rotates with travel direction. The caller's distance and speed determine flight duration. |
+| Impact | Each hit plays Small Explosion at its own anchor with radius, firelight and particle counts driven by impact strength and blast size. Upper draws the combined art in front. Gameplay owns the original actor poses, hit stop, shake, throw dust and actor charring. |
 
-Full and Simplified reproduced all 205 captured frames after a forward and backward seek. Duration and cleanup, near/far and zero-distance timing, caster and target movement, and primary versus secondary impacts passed batch validation. The capture checks compare stage art on transparency. Interactive preview and actor overlap in Play Mode remain to be reviewed.
+Full and Simplified reproduced all 205 captured frames after a forward and backward seek. Duration and cleanup, near/far and zero-distance timing, caster and target movement, and primary versus secondary impacts passed batch validation. All 246 standalone Full PNGs for the three reused effects matched their pre-integration captures.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
@@ -203,7 +203,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [ ] `moves/arrow-shot`
 - [ ] `moves/dash-strike`
 - [ ] `moves/earth-stomp`
-- [ ] `moves/fireball-throw` — playable C# adaptation. Seeded comparison complete. Upstream charge, projectile and blast renderers remain.
+- [x] `moves/fireball-throw` — verified. See [comparison and layering notes](#fireball-throw-comparison).
 - [ ] `moves/ground-pound`
 - [ ] `moves/holy-smite`
 - [ ] `moves/ice-lance-throw`

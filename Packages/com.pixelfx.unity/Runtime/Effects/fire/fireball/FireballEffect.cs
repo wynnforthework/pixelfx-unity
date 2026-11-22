@@ -25,27 +25,32 @@ namespace PixelFx
         private readonly int seed;
         private readonly FireballTrail trail;
 
-        private FireballEffect(PixelFxTimeline timeline)
+        internal FireballEffect(PixelFxSettings settings, bool full, PixelPainter painter)
         {
-            var settings = timeline.Settings;
+            this.painter = painter;
             seed = settings.seed;
             heat = Array.ConvertAll(settings.palette, c => Hex(PixelFxLibrary.Pack(c)));
             Array.Reverse(heat);
             glow = Mix(Mix(heat[3], heat[4], 0.5), White, 0.25);
-            painter = new PixelPainter(Width, Height, OriginX, OriginY) { LightStrength = settings.glow };
-            if (timeline.Quality == PixelFxQuality.Full)
+            if (full)
                 trail = new FireballTrail(seed, heat, Speed, Radius);
         }
 
         internal static PixelFxFrameRenderer CreateRenderer(PixelFxTimeline timeline)
         {
-            var effect = new FireballEffect(timeline);
-            return (pixels, _, time, _) => effect.Render(pixels, time);
+            var painter = new PixelPainter(Width, Height, OriginX, OriginY) { LightStrength = timeline.Settings.glow };
+            var effect = new FireballEffect(timeline.Settings, timeline.Quality == PixelFxQuality.Full, painter);
+            return (pixels, _, time, _) =>
+            {
+                painter.Clear();
+                effect.Draw(time);
+                painter.FadeLightEdges();
+                painter.Composite(pixels, true, false);
+            };
         }
 
-        private void Render(byte[] pixels, double time)
+        internal void Draw(double time)
         {
-            painter.Clear();
             double phase = time % Period / Period;
             double x = Noise(phase, 3, seed + 50) * 0.5, y = Noise(phase, 2.5, seed + 51) * 0.7;
             trail?.DrawTail(painter, phase * Period);
@@ -76,8 +81,6 @@ namespace PixelFx
             painter.GlowLine(x - 6, y, -50, -2, 12, glow, 0.2 * flicker);
             painter.Glow(x - 2, y, 42, glow, 0.42 * flicker);
             painter.Glow(x, y, 13, heat[1], 0.3 * flicker);
-            painter.FadeLightEdges();
-            painter.Composite(pixels, true, false);
         }
 
         private void Blade(double phase, int seed, double x, double y, double ux, double uy,

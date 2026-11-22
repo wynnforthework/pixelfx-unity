@@ -10,14 +10,15 @@ namespace PixelFx
     {
         internal const int Width = 120, Height = 86, OriginX = 44, OriginY = 80;
         internal const float Duration = 1.6f;
-        private const double Period = 1.6, RingLife = 0.5, HandX = 15, HandY = -22, Tau = 2 * PI;
+        internal const int HandX = 15, HandY = -22;
+        private const double Period = 1.6, RingLife = 0.5, Tau = 2 * PI;
         private static readonly (double Squash, double Tilt)[] RingShapes = { (1, 0), (0.38, 0.55), (1, 0), (0.42, -0.7) };
         private readonly uint[] colors;
         private readonly int seed;
         private readonly (double X, double Y)[] bolt = new (double, double)[33];
         private readonly (double X, double Y)[] fork = new (double, double)[9];
 
-        private SpellChargeEffect(PixelFxSettings settings)
+        internal SpellChargeEffect(PixelFxSettings settings)
         {
             seed = settings.seed;
             colors = Array.ConvertAll(settings.palette, c => Hex(PixelFxLibrary.Pack(c)));
@@ -37,7 +38,7 @@ namespace PixelFx
             };
         }
 
-        private void Draw(PixelPainter p, double time, bool full)
+        internal void Draw(PixelPainter p, double time, bool full, PixelFxRenderPass pass = PixelFxRenderPass.Combined)
         {
             double t = time % Period, phase = t / Period;
             int arcFrame = (int)Floor(t * 30);
@@ -49,7 +50,7 @@ namespace PixelFx
             double radius = 6.1 + 0.5 * pulse + 1.4 * swell;
             double x = HandX + (swell <= 0.4 ? 0 : (arcFrame & 1) != 0 ? 1 : -1);
 
-            if (full)
+            if (full && pass != PixelFxRenderPass.Back)
             {
                 DrawSpiral(p, t, radius, streaks: true);
                 DrawSpiral(p, t, radius, streaks: false);
@@ -60,9 +61,10 @@ namespace PixelFx
                 {
                     double age = t - ring * Period / RingShapes.Length - cycle * Period;
                     if (age >= 0 && age < RingLife)
-                        DrawRing(p, x, radius, RingShapes[ring], age / RingLife);
+                        DrawRing(p, x, radius, RingShapes[ring], age / RingLife, pass);
                 }
             }
+            if (pass == PixelFxRenderPass.Back) return;
             DrawOrb(p, x, radius, phase, (int)Floor(t * 15), full);
             if (full)
             {
@@ -132,7 +134,8 @@ namespace PixelFx
             return (HandX + Cos(a) * d, HandY + Sin(a) * d * (streaks ? 0.92 : 1));
         }
 
-        private void DrawRing(PixelPainter p, double x, double radius, (double Squash, double Tilt) shape, double q)
+        private void DrawRing(PixelPainter p, double x, double radius, (double Squash, double Tilt) shape, double q,
+            PixelFxRenderPass pass)
         {
             radius += 1.5 + 22 * (1 - q * q);
             int samples = (int)Ceiling(radius * Tau * 1.4);
@@ -144,6 +147,7 @@ namespace PixelFx
                 double dx = Cos(angle) * radius, dy = Sin(angle) * radius * shape.Squash;
                 double px = x + dx * c - dy * s, py = HandY + dx * s + dy * c;
                 if (py > -0.5) continue;
+                if (pass == PixelFxRenderPass.Back && py >= HandY || pass == PixelFxRenderPass.Front && py < HandY) continue;
                 p.Dot(px, py, ink, alpha);
                 if (j % 10 == 0) p.Glow(px, py, 5, colors[5], 0.12 * alpha);
             }

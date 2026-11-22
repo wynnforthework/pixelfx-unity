@@ -4,7 +4,6 @@ namespace PixelFx
 {
     internal sealed class FireballThrowTimeline
     {
-        internal const float ImpactDuration = 5.4f;
         internal readonly PixelFxHit[] Hits;
         internal readonly float CastTime, FlightTime;
         private readonly Vector3 castOrigin, launch, landing;

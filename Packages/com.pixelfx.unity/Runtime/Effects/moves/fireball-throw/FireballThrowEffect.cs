@@ -1,194 +1,96 @@
+using System;
 using static System.Math;
-using static PixelFx.PixelPainter;
+using UnityEngine;
 
 namespace PixelFx
 {
+    // Upstream chain at 5294518. The timeline supplies Unity's stage anchors and hit strengths.
     internal sealed class FireballThrowEffect
     {
-        internal const int Width = 260, Height = 196, OriginX = 130, OriginY = 148;
-        private const double Tau = PI * 2;
-        private readonly PixelPainter p;
-        private readonly PixelFxSettings settings;
-        private readonly uint[] c;
+        internal const int Width = 400, Height = 384, OriginX = 200, OriginY = 320;
+        private const double ChargeStart = 0.08, ReferenceCast = 0.95;
+        private static readonly uint[] ChargePalette =
+            { 0x1f0b10, 0x4a1118, 0x8c1d1c, 0xcc3a1a, 0xf2701f, 0xffae35, 0xffe27a, 0xfff8d6 };
 
-        private FireballThrowEffect(PixelFxSettings settings)
+        private readonly PixelPainter painter, castPainter;
+        private readonly SpellChargeEffect charge;
+        private readonly FireballEffect projectile;
+        private readonly PixelFxSettings blastSettings;
+        private readonly bool full;
+        private readonly double castStart;
+        private double lastStrength;
+        private SmallExplosionEffect blast;
+
+        private FireballThrowEffect(PixelFxTimeline timeline)
         {
-            p = new PixelPainter(Width, Height, OriginX, OriginY);
-            this.settings = settings;
-            c = System.Array.ConvertAll(settings.palette, value => Hex(PixelFxLibrary.Pack(value)));
+            var settings = timeline.Settings;
+            full = timeline.Quality == PixelFxQuality.Full;
+            painter = new PixelPainter(Width, Height, OriginX, OriginY) { LightStrength = settings.glow };
+            castPainter = new PixelPainter(Width, Height, OriginX - SpellChargeEffect.HandX, OriginY - SpellChargeEffect.HandY)
+                { LightStrength = settings.glow };
+            // Start on the first 30 FPS sample at or after the cue, as upstream's chain does.
+            castStart = Ceiling(ChargeStart * Min(1, timeline.CastTime / ReferenceCast) * 30) / 30;
+            if (castStart >= timeline.CastTime) castStart = 0;
+
+            var castSettings = settings.Copy();
+            var flightSettings = PixelFxLibrary.Get(PixelFxLibrary.Fireball).Defaults();
+            var original = PixelFxLibrary.Get(PixelFxLibrary.SmallExplosion).Defaults();
+            bool customPalette = false;
+            for (int i = 0; i < settings.palette.Length; i++)
+                customPalette |= !settings.palette[i].Equals(original.palette[i]);
+            if (customPalette)
+            {
+                flightSettings.palette[0] = settings.palette[0];
+                flightSettings.palette[1] = Color.Lerp(settings.palette[0], settings.palette[1], 0.5f);
+                Array.Copy(settings.palette, 1, flightSettings.palette, 2, settings.palette.Length - 1);
+            }
+            else
+            {
+                castSettings.palette = Array.ConvertAll(ChargePalette,
+                    ink => (Color)new Color32((byte)(ink >> 16), (byte)(ink >> 8), (byte)ink, 255));
+            }
+            flightSettings.seed = unchecked(settings.seed + 1);
+            blastSettings = settings.Copy();
+            blastSettings.seed = unchecked(settings.seed + 2);
+
+            charge = new SpellChargeEffect(castSettings);
+            projectile = new FireballEffect(flightSettings, full, painter);
         }
 
         internal static PixelFxFrameRenderer CreateRenderer(PixelFxTimeline timeline)
         {
-            var renderer = CreateLayerRenderer(timeline);
-            return (pixels, stage, time, strength) => renderer(pixels, stage, time, strength, PixelFxRenderPass.Combined);
+            var render = CreateLayerRenderer(timeline);
+            return (pixels, stage, time, strength) => render(pixels, stage, time, strength, PixelFxRenderPass.Combined);
         }
 
-        internal static PixelFxLayerRenderer CreateLayerRenderer(PixelFxTimeline timeline)
-        {
-            var effect = new FireballThrowEffect(timeline.Settings);
-            bool full = timeline.Quality == PixelFxQuality.Full;
-            return (pixels, stage, time, strength, pass) => effect.Render(pixels, stage, time, timeline.CastTime, strength, full, pass);
-        }
+        internal static PixelFxLayerRenderer CreateLayerRenderer(PixelFxTimeline timeline) =>
+            new FireballThrowEffect(timeline).Render;
 
-        private void Render(byte[] pixels, PixelFxStage stage, double t, double castDuration, double strength, bool full,
-            PixelFxRenderPass pass)
+        private void Render(byte[] pixels, PixelFxStage stage, double time, double strength, PixelFxRenderPass pass)
         {
-            p.Clear();
-            p.LightStrength = settings.glow;
+            var canvas = stage == PixelFxStage.Cast ? castPainter : painter;
+            canvas.Clear();
             switch (stage)
             {
-                case PixelFxStage.Cast: Cast(t, castDuration, full, pass); break;
-                case PixelFxStage.Flight: Flight(t, full); break;
-                case PixelFxStage.Impact: Impact(t, strength, full); break;
+                case PixelFxStage.Cast:
+                    if (time >= castStart) charge.Draw(canvas, time - castStart, full, pass);
+                    break;
+                case PixelFxStage.Flight:
+                    projectile.Draw(time);
+                    break;
+                case PixelFxStage.Impact:
+                    if (strength <= 0) break;
+                    if (blast == null || strength != lastStrength)
+                    {
+                        blast = new SmallExplosionEffect(blastSettings, full, painter,
+                            blastSettings.blastSize * Sqrt(strength), strength);
+                        lastStrength = strength;
+                    }
+                    blast.Draw(time, PixelFxRenderPass.Combined);
+                    break;
             }
-            p.Composite(pixels, true, true);
+            canvas.FadeLightEdges();
+            canvas.Composite(pixels, true, false);
         }
-
-        private void Cast(double t, double duration, bool full, PixelFxRenderPass pass)
-        {
-            double progress = Clamp(t / Max(duration, 0.001));
-            double radius = 2 + 5 * progress + Sin(16 * t) * progress;
-            for (int i = 0; i < 3; i++)
-            {
-                double q = (progress * 3 + i / 3.0) % 1;
-                Ring(0, 0, radius + 21 * (1 - q * q), 0.6 + 0.18 * i, c[5], Sin(q * PI), pass);
-            }
-            if (full)
-            {
-                for (int i = 0; i < 52; i++)
-                {
-                    var rng = new PixelFxRandom(settings.seed, i);
-                    double age = (t * rng.Range(2.1, 3.4) + rng.Range(0, 1)) % 1;
-                    double angle = rng.Range(0, Tau) + age * age * 1.4;
-                    double r = radius + rng.Range(14, 45) * (1 - age * age);
-                    double dx = Cos(angle), dy = Sin(angle);
-                    if (!InPass(dy, pass)) continue;
-                    p.Line(dx * r, dy * r, dx * (r + 4 * age), dy * (r + 4 * age),
-                        age > 0.66 ? c[6] : c[3], Sin(age * PI) * Min(1, progress * 5));
-                }
-            }
-            if (pass != PixelFxRenderPass.Front) p.Glow(0, 0, 43, c[4], 0.2 + 0.2 * progress);
-            if (pass != PixelFxRenderPass.Back) Orb(0, 0, radius, t);
-        }
-
-        private void Flight(double t, bool full)
-        {
-            double y = Sin(t * 13) * 0.65;
-            p.Shade(-37, -9, 7, 9, (x, yy) =>
-            {
-                double q = Clamp(-x / 37), band = (4.5 + Sin(q * 15 - t * 23)) * (1 - q);
-                double d = Abs(yy - y - Sin(q * 12 - t * 18) * q * 3);
-                if (d > band) return default;
-                int heat = (int)(2 + (1 - q) * 3 + (1 - d / Max(0.1, band)));
-                return (c[heat], 1 - q * 0.85);
-            });
-            if (full)
-            {
-                for (int i = 0; i < 70; i++)
-                {
-                    var rng = new PixelFxRandom(settings.seed + 71, i);
-                    double age = (t * rng.Range(2, 4.2) + rng.Range(0, 1)) % 1;
-                    double x = -rng.Range(25, 88) * age, yy = rng.Range(-12, 12) * age + y;
-                    double radius = rng.Range(0.8, 3.3) * (0.6 + age);
-                    if (age > 0.62)
-                        p.Disc(x, yy, radius, Mix(Hex(0x494052), c[1], 0.18), (1 - age) * 0.8);
-                    else
-                        p.Circle(x, yy, radius, c[age < 0.22 ? 5 : age < 0.42 ? 3 : 1], 1 - age);
-                }
-            }
-            p.Glow(-5, y, 38, c[4], 0.38);
-            Orb(0, y, 5.4, t);
-        }
-
-        private void Orb(double x, double y, double radius, double t)
-        {
-            p.Shade(x - radius - 2, y - radius - 2, x + radius + 2, y + radius + 2, (xx, yy) =>
-            {
-                double dx = xx - x, dy = yy - y, a = Atan2(dy, dx);
-                double length = Sqrt(dx * dx + dy * dy);
-                double rim = radius + 0.72 * Sin(a * 5 + t * 27) + 0.42 * Sin(a * 9 - t * 14);
-                if (length > rim) return default;
-                double heat = Clamp(1 - length / rim + 0.23 * Sin(a * 3 + length * 0.55 - t * 15));
-                return (c[Min(7, 3 + (int)(heat * 6))], 1);
-            });
-        }
-
-        private void Impact(double t, double strength, bool full)
-        {
-            double scale = settings.blastSize * Sqrt(strength), radius = 18 * scale, y = -radius * 0.3;
-            if (t < 0.7)
-                p.Glow(0, y, radius * 3.4, c[4], 0.62 * strength * Pow(1 - t / 0.7, 2));
-            if (t < 0.1)
-            {
-                p.Circle(0, y, radius * (1 - t * 3), c[4]);
-                p.Circle(0, y, radius * (0.79 - t * 2), c[7]);
-            }
-            if (t < 0.5)
-            {
-                double q = t / 0.5;
-                Ring(0, 0, radius * (0.3 + 3.9 * (1 - Pow(1 - q, 3))), 0.16, c[5], 1 - q);
-                if (t < 0.24) Ring(0, y, radius * (0.5 + t * 8), 1, c[6], 1 - t / 0.24);
-            }
-            double fade = Clamp((5.4 - t) / 1.2);
-            if (t > 0)
-                p.Shade(-radius * 1.3, -2, radius * 1.3, 4, (x, yy) =>
-                {
-                    if (radius <= 0 || Pow(x / (radius * 1.3), 2) + Pow(yy / 3, 2) > 1) return default;
-                    return (t < 0.65 ? c[2] : Hex(0x17121d), fade);
-                });
-            if (!full) return;
-            DrawBlastParticles(t, strength, scale, radius, y);
-        }
-
-        private void DrawBlastParticles(double t, double strength, double scale, double radius, double y)
-        {
-            int clouds = (int)Round(44 * strength * settings.blastSize);
-            for (int i = 0; i < clouds; i++)
-            {
-                var rng = new PixelFxRandom(settings.seed + 139, i);
-                double delay = rng.Range(0, 0.24), age = t - delay, life = rng.Range(1.45, 3.65);
-                if (age < 0 || age >= life) continue;
-                double k = age / life, a = rng.Range(0, Tau), v = rng.Range(18, 65) * scale;
-                double drag = 1 - Exp(-age * 2.5);
-                double x = Cos(a) * v * drag, yy = y + Sin(a) * v * 0.45 * drag - age * rng.Range(9, 25) * scale;
-                double r = radius * rng.Range(0.16, 0.38) * (0.8 + k * 1.9);
-                if (age < 0.54)
-                {
-                    p.Circle(x, yy, r, c[age < 0.24 ? 4 : 2]);
-                    p.Circle(x - r * 0.18, yy - r * 0.22, r * 0.68, c[age < 0.24 ? 6 : 3]);
-                }
-                else p.Disc(x, yy, r, Mix(Hex(0x594c5a), Hex(0x241d2a), k), Clamp((age - 0.54) * 9) * (1 - k) * 0.54);
-            }
-            int sparks = (int)Round(88 * strength * settings.blastSize);
-            for (int i = 0; i < sparks; i++)
-            {
-                var rng = new PixelFxRandom(settings.seed + 261, i);
-                double life = rng.Range(0.22, 1.35);
-                if (t >= life) continue;
-                double a = rng.Range(-PI, 0), v = rng.Range(40, 180) * scale, k = 1 - t / life;
-                double x = Cos(a) * v * t / (1 + t * 2.6);
-                double yy = Min(-1, y + Sin(a) * v * t + 75 * t * t);
-                p.Line(x, yy, x - Cos(a) * 4 * k, yy - Sin(a) * 4 * k, c[k > 0.55 ? 6 : 3], k);
-            }
-        }
-
-        private void Ring(double x, double y, double radius, double squash, uint ink, double alpha,
-            PixelFxRenderPass pass = PixelFxRenderPass.Combined)
-        {
-            int count = (int)Ceiling(radius * Tau * 1.2);
-            for (int i = 0; i < count; i++)
-            {
-                double a = i * Tau / count;
-                double depth = Sin(a);
-                if (InPass(depth, pass))
-                    p.Dot(x + radius * Cos(a), y + radius * depth * squash, ink, alpha);
-            }
-        }
-
-        private static bool InPass(double depth, PixelFxRenderPass pass) =>
-            pass == PixelFxRenderPass.Combined || (depth < 0) == (pass == PixelFxRenderPass.Back);
-
-        private static double Clamp(double n) => Max(0, Min(1, n));
     }
 }
