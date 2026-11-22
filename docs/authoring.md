@@ -25,6 +25,12 @@ Bind each stage using `PixelFxActorBinding`. The player sorts one order behind o
 
 For Fireball Throw, an explicit `LaunchPoint` sets the projectile's world-space origin. Otherwise, a following cast binding supplies the origin at release. The flight duration is scheduled from the initial distance, and each hit may follow its own actor after the projectile reaches the snapshotted landing point.
 
+### Actor silhouette
+
+Use `PixelFxActorMask` for effects that recolor or outline the actor. Call `Update` with the current `SpriteRenderer` before drawing. Use the `Sprite` overload for preview artwork. `DrawFill` receives each covered pixel's source color, and `DrawOutline` draws one source pixel outward along the four cardinal directions. Both draw into the effect's painter. Pass the sprite pivot in painter coordinates (+Y down) and the painter pixels per actor-local Unity unit to align the overlay.
+
+Use Simple sprite drawing and enable Read/Write on the texture sampled by the sprite, including the atlas texture when packed. Mask coverage is binary and uses nonzero source alpha. Missing sprites, unreadable textures and split-alpha textures return false from `Update`. Skip silhouette passes for an unavailable mask and keep any independent impact art.
+
 ## Add or migrate a definition
 
 Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/`. Preserve the full ID path, such as `melee/heavy-cleave` or `moves/fireball-throw`. Keep the effect renderer, particles, effect-specific stage code, and dedicated helpers in that directory. Split a large effect by responsibility with effect-prefixed filenames. Common playback, variants, and the registry live in `Runtime/Core/`. Reusable rasterization and texture code live in `Runtime/Rendering/`. Preserve Unity `.meta` files when moving existing scripts or assets.

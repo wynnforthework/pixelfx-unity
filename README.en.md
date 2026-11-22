@@ -97,7 +97,8 @@ The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Parry
 - [ ] Port melee and impacts, then projectiles and chained moves
 - [ ] Port elemental and status effects, then environment, creatures, and UI
 - [x] Support actor-relative Lower, Middle and Upper playback
-- [ ] Add reusable actor masks and action timing
+- [x] Add reusable actor silhouette sampling, recolor and outline
+- [ ] Add reusable action timing
 
 ## Authoring and license
 

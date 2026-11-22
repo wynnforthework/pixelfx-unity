@@ -22,6 +22,7 @@ namespace PixelFx.Editor
             ValidateStages();
             ValidatePlayback();
             ValidateActorLayers();
+            ValidateActorMask();
             ImportSample();
             Debug.Log("PixelFX validation passed");
         }
@@ -257,6 +258,79 @@ namespace PixelFx.Editor
                     .Where(root => root.name.StartsWith("PixelFX ", StringComparison.Ordinal))
                     .Select(root => root.GetComponent<SpriteRenderer>())
                     .Where(renderer => renderer != null && renderer.sortingOrder == order);
+        }
+
+        private static void ValidateActorMask()
+        {
+            var texture = new Texture2D(6, 3, TextureFormat.RGBA32, false);
+            var obj = new GameObject("PixelFX actor mask validation", typeof(SpriteRenderer));
+            Sprite first = null, second = null;
+            try
+            {
+                var colors = new Color32[18];
+                colors[0] = new Color32(42, 91, 130, 255);
+                colors[7] = new Color32(131, 77, 13, 128);
+                colors[17] = new Color32(7, 111, 184, 255);
+                texture.SetPixels32(colors);
+                texture.Apply();
+                var pivot = new Vector2(0, 1);
+                first = Sprite.Create(texture, new Rect(0, 0, 3, 3), pivot, 16, 0, SpriteMeshType.FullRect);
+                second = Sprite.Create(texture, new Rect(3, 0, 3, 3), pivot, 16, 0, SpriteMeshType.FullRect);
+                var actor = obj.GetComponent<SpriteRenderer>();
+                var painter = new PixelPainter(16, 16, 8, 8);
+                var buffer = new byte[16 * 16 * 4];
+                var mask = new PixelFxActorMask();
+                actor.sprite = first;
+                Check(mask.Update(actor), "Actor mask captures current sprite");
+                DrawMask(16);
+                Check(Pixel(0, 2) == PixelPainter.Rgb(42, 91, 130) && Pixel(1, 1) == PixelPainter.Rgb(131, 77, 13),
+                    "Actor mask preserves source RGB and tests nonzero source alpha");
+                Check(Pixel(-1, 2) == PixelPainter.White && Pixel(0, 3) == PixelPainter.White && Pixel(-1, 3) == 0,
+                    "Actor mask draws a four-neighbor outline outside the silhouette");
+
+                actor.flipX = actor.flipY = true;
+                Check(mask.Update(actor), "Actor mask reads live flips");
+                DrawMask(16);
+                Check(Pixel(-1, -3) == PixelPainter.Rgb(42, 91, 130) && Pixel(-2, -2) == PixelPainter.Rgb(131, 77, 13)
+                    && Pixel(0, 2) == 0, "Actor mask flips around its own pivot");
+
+                actor.flipX = actor.flipY = false;
+                actor.sprite = second;
+                Check(mask.Update(actor), "Actor mask captures a new frame from the same sheet");
+                DrawMask(32);
+                Check(Pixel(4, 0) == PixelPainter.Rgb(7, 111, 184) && Pixel(5, 1) == Pixel(4, 0)
+                    && Pixel(3, 1) == PixelPainter.White && Pixel(1, 1) == 0,
+                    "Actor mask scales from source to painter PPU and clears previous frame");
+
+                texture.Apply(false, true);
+                Check(!mask.Update(actor), "Actor mask reports an unreadable texture");
+                DrawMask(16);
+                Check(buffer.All(value => value == 0), "An unavailable mask never reuses stale pixels");
+                actor.sprite = null;
+                Check(!mask.Update(actor), "Actor mask handles a missing sprite");
+
+                void DrawMask(double pixelsPerUnit)
+                {
+                    painter.Clear();
+                    mask.DrawFill(painter, 0, 0, pixelsPerUnit, 0,
+                        static (source, _) => PixelPainter.Rgb(source.r, source.g, source.b));
+                    mask.DrawOutline(painter, 0, 0, pixelsPerUnit, PixelPainter.White);
+                    painter.Composite(buffer, false, false);
+                }
+
+                uint Pixel(int x, int y)
+                {
+                    int offset = ((y + 8) * 16 + x + 8) * 4;
+                    return buffer[offset + 3] == 0 ? 0 : PixelPainter.Rgb(buffer[offset], buffer[offset + 1], buffer[offset + 2]);
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(obj);
+                Object.DestroyImmediate(first);
+                Object.DestroyImmediate(second);
+                Object.DestroyImmediate(texture);
+            }
         }
 
         private static void ImportSample()

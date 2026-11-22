@@ -6,8 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| Shared actor masks for `impacts/hit-flash` | Next | Inspect upstream sprite reads. Add reusable support for recoloring and outlining the actor's current sprite silhouette, then verify and commit the shared capability. |
-| `impacts/hit-flash` | Blocked on shared actor masks | After mask support lands, port the effect and verify the white and red beats on an actor. |
+| `impacts/hit-flash` | Next | Bind the foreground flash to the hit actor's current sprite using the shared mask. Port the white, red, rim and cooldown beats, comic lines and lights. Compare seed 17 at 30 FPS using the same actor artwork in Unity and upstream. Verify preview fallback and animated runtime alignment. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
@@ -30,12 +29,14 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 | `impacts/ground-slam` | Use a foot anchor. Crater, cracks, embers and back particles are Lower. The dust ring is Middle with far and near passes. Shock fronts, rocks, foreground particles and the flash are Upper at the foot anchor. Verify the upstream order with an actor between the passes. |
 | `arcane/magic-circle-cast`, `fire/fire-ring`, `holy/divine-shield` | Upstream draws around a center or actor using both passes. Verify the geometry and particle assignment for each effect when it enters the queue. For a ring, put the far arc behind the actor and the near arc in front. |
 | `moves/fireball-throw` | For the requested A-to-B acceptance case, the Middle cast ring follows A and the projectile follows its travel path. Each Upper impact follows its own target at its hit anchor for the full impact phase. Check with A and B moving and using different sorting orders. This is a Unity acceptance case for stage-specific binding and sorting. |
-| `impacts/hit-flash` | The recolor and outline use the hit actor's current sprite silhouette. Track actor mask support as its own prerequisite. |
+| `impacts/hit-flash` | Draw the recolor, outline and hit accents in front of the hit actor. Use the sprite pivot for the mask and the chest for the hit accents. Follow the renderer and its current sprite throughout the effect. The game owns the hit pose, hit stop and camera shake. |
 | `melee/heavy-cleave` | Standalone frames are verified. Upstream places the far and near shock-ring halves around the fighter. Revisit actor-overlap playback once shared layering is available. |
 
 ## Latest checkpoint
 
-**6 / 244 verified** in Unity as of 2026-11-22. Shared actor masks for Hit Flash are next.
+**6 / 244 verified** in Unity as of 2026-11-22. Hit Flash is next.
+
+Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet. The Hit Flash port still needs the runtime foreground overlay, editor preview artwork and an upstream frame comparison.
 
 Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open. Fireball Throw still needs upstream visual comparison before it counts as a verified port.
 
