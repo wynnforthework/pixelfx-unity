@@ -14,7 +14,6 @@ namespace PixelFx.Editor
         private GameObject actor;
         private Renderer actorRenderer;
         private Bounds actorBounds;
-        private Vector3 actorOrigin;
         private Bounds frameBounds;
         private PixelFxPlayer.Playback playback;
         private PixelFxTimeline timeline;
@@ -81,8 +80,6 @@ namespace PixelFx.Editor
                 InitializeSpine(actor);
                 actor.transform.SetParent(root, true);
                 RefreshActorBounds();
-                actorOrigin = actor.transform.position - actorBounds.center;
-                actorOrigin.y += actorBounds.extents.y;
             }
             finally { Object.DestroyImmediate(staging); }
         }
@@ -125,8 +122,8 @@ namespace PixelFx.Editor
             {
                 bool staged = id == PixelFxLibrary.FireballThrow;
                 var destination = staged && actorIsTarget ? landing : Vector3.zero;
-                var delta = actorOrigin + destination - actor.transform.position;
-                actor.transform.position += delta;
+                var delta = destination - actor.transform.position;
+                actor.transform.position = destination;
                 actorBounds.center += delta;
                 if (actorRenderer != null)
                 {
