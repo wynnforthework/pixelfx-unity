@@ -131,20 +131,54 @@ namespace PixelFx
         internal void LightOutline(PixelPainter painter, Matrix4x4 actorToSurface, uint ink, double strength,
             int left, int top, int right, int bottom)
         {
-            if (pixels == null) return;
-            double determinant = (double)actorToSurface.m00 * actorToSurface.m11 - (double)actorToSurface.m01 * actorToSurface.m10;
-            if (Math.Abs(determinant) < 1e-8) return;
-            var grid = GridAt(0, 0, 1);
-            // Invert the projected sprite plane on the effect's 32 PPU raster.
+            if (!TryProject(actorToSurface, out var projection)) return;
             for (int y = top; y < bottom; y++)
             for (int x = left; x < right; x++)
             {
-                double dx = (x + 0.5) / 32 - actorToSurface.m03;
-                double dy = -(y + 0.5) / 32 - actorToSurface.m13;
+                var (column, row) = projection.Cell(x + 0.5, y + 0.5);
+                if (IsOutline(column, row)) painter.Light(x, y, ink, strength);
+            }
+        }
+
+        internal bool TryProject(Matrix4x4 actorToSurface, out Projection projection)
+        {
+            projection = default;
+            if (pixels == null) return false;
+            double determinant = (double)actorToSurface.m00 * actorToSurface.m11 - (double)actorToSurface.m01 * actorToSurface.m10;
+            if (Math.Abs(determinant) < 1e-8) return false;
+            projection = new Projection(this, actorToSurface, determinant);
+            return true;
+        }
+
+        internal readonly struct Projection
+        {
+            private readonly PixelFxActorMask mask;
+            private readonly Matrix4x4 actorToSurface;
+            private readonly double determinant;
+            private readonly (double X, double Y, double Step) grid;
+
+            internal Projection(PixelFxActorMask mask, Matrix4x4 actorToSurface, double determinant)
+            {
+                this.mask = mask;
+                this.actorToSurface = actorToSurface;
+                this.determinant = determinant;
+                grid = mask.GridAt(0, 0, 1);
+            }
+
+            // Invert the projected sprite plane on the effect's 32 PPU raster.
+            internal (int Column, int Row) Cell(double x, double y)
+            {
+                double dx = x / 32 - actorToSurface.m03;
+                double dy = -y / 32 - actorToSurface.m13;
                 double sx = (dx * actorToSurface.m11 - dy * actorToSurface.m01) / determinant;
                 double sy = (dy * actorToSurface.m00 - dx * actorToSurface.m10) / determinant;
-                var (column, row) = CellAt(sx, -sy, grid);
-                if (IsOutline(column, row)) painter.Light(x, y, ink, strength);
+                return CellAt(sx, -sy, grid);
+            }
+
+            internal Color32 Sample(double x, double y)
+            {
+                var (column, row) = Cell(x, y);
+                return mask.SourcePixel(column, row);
             }
         }
 

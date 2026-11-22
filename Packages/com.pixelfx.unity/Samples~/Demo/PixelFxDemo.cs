@@ -42,7 +42,8 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Layered Fireball")) PlayLayeredFireball();
             if (GUILayout.Button("Ground Slam")) PlayGroundSlam();
             if (GUILayout.Button("Hit Flash")) PlayHitFlash();
-            if (GUILayout.Button("Divine Shield")) PlayDivineShield();
+            if (GUILayout.Button("Divine Shield")) PlayActorBuff(PixelFxLibrary.DivineShield);
+            if (GUILayout.Button("Blessing")) PlayActorBuff(PixelFxLibrary.Blessing);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
@@ -98,14 +99,14 @@ namespace PixelFx.Samples
             });
         }
 
-        private void PlayDivineShield()
+        private void PlayActorBuff(string effect)
         {
             current?.Stop();
             EnsureActors();
             caster.enabled = true;
             target.enabled = false;
             caster.transform.position = transform.position + new Vector3(3.3f, 1, 0);
-            current = player.Play(PixelFxLibrary.DivineShield, context: new PixelFxContext
+            current = player.Play(effect, context: new PixelFxContext
             {
                 Binding = new PixelFxActorBinding(caster, PixelFxLayer.Middle)
             });

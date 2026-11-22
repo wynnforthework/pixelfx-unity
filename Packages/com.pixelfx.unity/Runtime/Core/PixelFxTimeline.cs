@@ -52,7 +52,7 @@ namespace PixelFx
             PreviewActor = previewActor;
             FlashPart = hitFlashPart;
             if (binding.Actor != null && Quality != PixelFxQuality.Off
-                && (id == PixelFxLibrary.DivineShield
+                && (definition.UsesProjectedActorMask
                     || (id == PixelFxLibrary.HitFlash && hitFlashPart != HitFlashPart.Accents)))
                 ActorMask = new PixelFxActorMask();
             castBinding = context.CastBinding;

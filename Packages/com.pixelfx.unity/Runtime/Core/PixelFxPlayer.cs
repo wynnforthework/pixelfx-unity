@@ -174,7 +174,7 @@ namespace PixelFx
                     SetPlacement(renderer, sortingRenderer, !actorOverlay && binding.Layer == PixelFxLayer.Lower, point, rotation);
                     if (actorOverlay)
                         HitFlashEffect.PlaceOverlay(renderer, binding.Actor, timeline.Settings.scale);
-                    if (!actorOverlay && timeline.ActorMask != null && binding.Actor != null)
+                    if (timeline.Definition.UsesProjectedActorMask && timeline.ActorMask != null && binding.Actor != null)
                         timeline.ActorToSurface = renderer.transform.worldToLocalMatrix * binding.Actor.localToWorldMatrix;
                     surface.Draw(stage, localTime, strength, split ? PixelFxRenderPass.Front : PixelFxRenderPass.Combined);
                     if (!split) continue;
