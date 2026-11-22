@@ -30,7 +30,7 @@ For a local checkout, use **Add package from disk** and select `Packages/com.pix
 
 ![Unity Effect Library with the effect grid, playback timeline, and parameter controls](docs/media/effect-library.png)
 
-Open **Tools > PixelFX > Effect Library**. The **Built-in** and **Variants** tabs above the search box show the packaged effects and saved variants, respectively. Search the active tab by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`, switches to **Variants**, and selects the new asset. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
+Open **Tools > PixelFX > Effect Library**. The dropdown beside the search box offers **All**, **Built-in** for upstream ports, **Variants** for saved variants, and **Originals** for effects authored in this package. Search the selected category by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`, switches to the **Variants** filter, and selects the new asset. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
 
 Drag with the left or middle mouse button to pan, scroll to zoom, and drag with the right mouse button or Alt + left mouse button to orbit. **Ortho / Persp** switches projection. **Front** resets the viewing angle and **Frame** centers and fits the actor and effect.
 

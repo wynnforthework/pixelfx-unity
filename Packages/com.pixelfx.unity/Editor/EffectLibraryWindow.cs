@@ -9,9 +9,9 @@ namespace PixelFx.Editor
 {
     internal sealed class EffectLibraryWindow : EditorWindow
     {
-        private enum LibraryTab { BuiltIn, Variants }
+        private enum LibraryFilter { All, BuiltIn, Variants, Originals }
 
-        private static readonly string[] LibraryTabs = { "Built-in", "Variants" };
+        private static readonly string[] LibraryFilters = { "All", "Built-in", "Variants", "Originals" };
         private const float TileHeight = 95;
 
         [Serializable]
@@ -40,7 +40,7 @@ namespace PixelFx.Editor
 
         [SerializeField] private string selectedId = PixelFxLibrary.HeavyCleave;
         [SerializeField] private PixelFxVariant selectedVariant;
-        [SerializeField] private LibraryTab libraryTab;
+        [SerializeField] private LibraryFilter libraryFilter;
         [SerializeField] private string search = "";
         [SerializeField] private bool loop = true;
         [SerializeField] private PixelFxQuality quality;
@@ -295,28 +295,15 @@ namespace PixelFx.Editor
             float width = GridWidth;
             using (new EditorGUILayout.VerticalScope(GUILayout.Width(width)))
             {
-                var tab = (LibraryTab)GUILayout.Toolbar((int)libraryTab, LibraryTabs, EditorStyles.toolbarButton);
-                if (tab != libraryTab)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    libraryTab = tab;
-                    gridScroll = Vector2.zero;
+                    EditorGUI.BeginChangeCheck();
+                    search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField, GUILayout.ExpandWidth(true));
+                    libraryFilter = (LibraryFilter)EditorGUILayout.Popup((int)libraryFilter, LibraryFilters,
+                        EditorStyles.toolbarPopup, GUILayout.Width(88));
+                    if (EditorGUI.EndChangeCheck()) gridScroll = Vector2.zero;
                 }
-                search = EditorGUILayout.TextField(search, EditorStyles.toolbarSearchField);
-                var matches = new List<(PixelFxDefinition Definition, PixelFxVariant Variant)>();
-                if (libraryTab == LibraryTab.BuiltIn)
-                {
-                    foreach (var effect in PixelFxLibrary.Effects)
-                        if (Matches(effect, effect.Name)) matches.Add((effect, null));
-                }
-                else
-                {
-                    foreach (var variant in variants)
-                    {
-                        if (variant == null) continue;
-                        var effect = PixelFxLibrary.Get(variant.EffectId);
-                        if (Matches(effect, variant.name)) matches.Add((effect, variant));
-                    }
-                }
+                var matches = CollectMatches();
                 gridScroll = EditorGUILayout.BeginScrollView(gridScroll);
                 int columns = GridColumns(width);
                 float tileWidth = (width - 18) / columns - 5;
@@ -342,10 +329,35 @@ namespace PixelFx.Editor
                     }
                 }
                 if (matches.Count == 0)
-                    GUILayout.Label(libraryTab == LibraryTab.Variants ? "No matching variants" : "No matching effects",
+                    GUILayout.Label(libraryFilter == LibraryFilter.Variants ? "No matching variants" : "No matching effects",
                         EditorStyles.centeredGreyMiniLabel);
                 EditorGUILayout.EndScrollView();
             }
+        }
+
+        private List<(PixelFxDefinition Definition, PixelFxVariant Variant)> CollectMatches()
+        {
+            var matches = new List<(PixelFxDefinition, PixelFxVariant)>();
+            if (libraryFilter != LibraryFilter.Variants)
+            {
+                foreach (var effect in PixelFxLibrary.Effects)
+                {
+                    bool original = effect.Id.StartsWith("original/", StringComparison.Ordinal);
+                    if ((libraryFilter == LibraryFilter.All || original == (libraryFilter == LibraryFilter.Originals))
+                        && Matches(effect, effect.Name))
+                        matches.Add((effect, null));
+                }
+            }
+            if (libraryFilter == LibraryFilter.All || libraryFilter == LibraryFilter.Variants)
+            {
+                foreach (var variant in variants)
+                {
+                    if (variant == null) continue;
+                    var effect = PixelFxLibrary.Get(variant.EffectId);
+                    if (Matches(effect, variant.name)) matches.Add((effect, variant));
+                }
+            }
+            return matches;
         }
 
         private bool Matches(PixelFxDefinition effect, string name) =>
@@ -625,7 +637,7 @@ namespace PixelFx.Editor
             RefreshVariants();
             if (!update)
             {
-                libraryTab = LibraryTab.Variants;
+                libraryFilter = LibraryFilter.Variants;
                 search = "";
                 int index = variants.IndexOf(selectedVariant);
                 gridScroll = new Vector2(0, TileHeight * (Mathf.Max(0, index) / GridColumns(GridWidth)));
