@@ -23,6 +23,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Heavy Cleave")) Play(PixelFxLibrary.HeavyCleave);
             if (GUILayout.Button("Hit Spark")) Play(PixelFxLibrary.HitSpark);
             if (GUILayout.Button("Parry")) Play(PixelFxLibrary.Parry);
+            if (GUILayout.Button("Blunt Hit")) Play(PixelFxLibrary.BluntHit);
             if (GUILayout.Button("Fireball Throw")) Play(PixelFxLibrary.FireballThrow);
             if (GUILayout.Button("Shuriken")) Play(PixelFxLibrary.Shuriken);
             if (variant != null && GUILayout.Button("Play Assigned Effect"))

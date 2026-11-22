@@ -1,7 +1,7 @@
-Heavy Cleave, Hit Spark, Parry, and the Fireball Throw adaptation draw on Patch PixelFX:
+Heavy Cleave, Hit Spark, Parry, Blunt Hit, and the Fireball Throw adaptation draw on Patch PixelFX:
 https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826
 
-The crescent, hit spark, parry star and arcs, spell charge, and explosion recipes originate in part from Hugo Duprez's open-source Sprite Fusion VFX:
+The crescent, hit spark, parry star and arcs, blunt hit dust and clods, spell charge, and explosion recipes originate in part from Hugo Duprez's open-source Sprite Fusion VFX:
 https://www.spritefusion.com/pixel-art-vfx
 
 See LICENSE.txt for the MIT terms and copyright notices. Shuriken is an original addition.

@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Parry, Fireball Throw, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Parry, Blunt Hit, Fireball Throw, and the original Shuriken.
 
 The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
@@ -80,7 +80,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, and Parry passed the upstream visual comparison (**3 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Parry animation](docs/media/parry.gif)
+The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Parry, and Blunt Hit passed the upstream visual comparison (**4 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken

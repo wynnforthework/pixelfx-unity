@@ -35,6 +35,12 @@ namespace PixelFx
         internal void Shade(double left, double top, double right, double bottom,
             Func<double, double, (uint Ink, double Alpha)> sample)
         {
+            Shade(left, top, right, bottom, sample, static (x, y, shader) => shader(x, y));
+        }
+
+        internal void Shade<T>(double left, double top, double right, double bottom, T state,
+            Func<double, double, T, (uint Ink, double Alpha)> sample)
+        {
             int x0 = Max(0, (int)Ceiling(left + originX - 0.5));
             int x1 = Min(width - 1, (int)Floor(right + originX - 0.5));
             int y0 = Max(0, (int)Ceiling(top + originY - 0.5));
@@ -42,7 +48,7 @@ namespace PixelFx
             for (int y = y0; y <= y1; y++)
             for (int x = x0; x <= x1; x++)
             {
-                var pixel = sample(x - originX + 0.5, y - originY + 0.5);
+                var pixel = sample(x - originX + 0.5, y - originY + 0.5, state);
                 if (pixel.Ink != 0) Put(x, y, pixel.Ink, pixel.Alpha);
             }
         }
@@ -75,6 +81,57 @@ namespace PixelFx
         {
             if (radius < 0.6) { Dot(x, y, ink, alpha); return; }
             Disc(x, y, radius, ink, alpha, false);
+        }
+
+        internal void Triangle((double X, double Y) a, (double X, double Y) b, (double X, double Y) c, uint ink)
+        {
+            Shade(Min(a.X, Min(b.X, c.X)), Min(a.Y, Min(b.Y, c.Y)),
+                Max(a.X, Max(b.X, c.X)), Max(a.Y, Max(b.Y, c.Y)), (A: a, B: b, C: c, Ink: ink),
+                static (x, y, triangle) =>
+                {
+                    bool inside = Crosses(x, y, triangle.A, triangle.C) ^ Crosses(x, y, triangle.B, triangle.A)
+                        ^ Crosses(x, y, triangle.C, triangle.B);
+                    return (inside ? triangle.Ink : 0, 1);
+                });
+        }
+
+        private static bool Crosses(double x, double y, (double X, double Y) a, (double X, double Y) b) =>
+            (a.Y > y) != (b.Y > y) && x < (b.X - a.X) * (y - a.Y) / (b.Y - a.Y) + a.X;
+
+        // Soft dust uses straight-alpha blending and a quadratic radial fade.
+        internal void SoftDisc(double x, double y, double radius, uint ink, double alpha, double falloff)
+        {
+            if (alpha <= 0.004) return;
+            x += originX;
+            y += originY;
+            if (radius < 0.5)
+            {
+                Blend((int)Floor(x), (int)Floor(y), ink, alpha);
+                return;
+            }
+            Bounds(x, y, radius, out int left, out int right, out int top, out int bottom);
+            double radiusSquared = radius * radius;
+            for (int row = top; row <= bottom; row++)
+            for (int col = left; col <= right; col++)
+            {
+                double dx = col + 0.5 - x, dy = row + 0.5 - y;
+                double distanceSquared = dx * dx + dy * dy;
+                if (distanceSquared > radiusSquared) continue;
+                double distance = Sqrt(distanceSquared) / radius;
+                Blend(col, row, ink, alpha * (1 - distance * distance * falloff));
+            }
+        }
+
+        private void Blend(int x, int y, uint ink, double alpha)
+        {
+            if (alpha <= 0.004 || (uint)x >= width || (uint)y >= height) return;
+            int index = y * width + x;
+            uint under = color[index];
+            double outAlpha = alpha + (under >> 24) / 255.0 * (1 - alpha);
+            double over = alpha / outAlpha, below = 1 - over;
+            color[index] = (Rgb(Channel(ink, 0) * over + Channel(under, 0) * below,
+                Channel(ink, 8) * over + Channel(under, 8) * below,
+                Channel(ink, 16) * over + Channel(under, 16) * below) & 0xffffff) | ((uint)(outAlpha * 255) << 24);
         }
 
         internal void Disc(double x, double y, double radius, uint ink, double alpha, bool blend = true)

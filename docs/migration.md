@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/blunt-hit` | Next | Read `src/fx/impacts/blunt-hit.js`, its `_lib.js` helpers and `Bits` in `src/core/sim.js`. Port the impact flash, wedges, dust and clods. Compare seed 9 at 30 FPS. |
+| `impacts/crit-hit` | Next | Read `src/fx/impacts/crit-hit.js` and `_lib.js`. Reuse Parry's star and broken-ring logic where applicable. Port the flare, directional sparks and `Bits` shard behavior. Compare seed 3 at 30 FPS. |
 | `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
@@ -20,10 +20,11 @@ An unchecked entry without a queue note is pending. Keep upcoming batches small 
 
 ## Latest checkpoint
 
-**3 / 244 verified** in Unity. Blunt Hit is next.
+**4 / 244 verified** in Unity. Critical Hit is next.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `impacts/blunt-hit` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 9, 128 × 88, pivot (64, 72), 30 FPS. Alpha matched across all 27 playback frames. Six pixel samples differed by two 8-bit RGB levels, and all other samples differed by at most one. Re-seeking reproduced the same frames for seeds 9, 17 and 52. Simplified keeps the flash, wedges and glow and skips dust and clods. Off uses no surface. All three qualities last 0.9 seconds at default speed. | [Comparison](media/blunt-hit-comparison.png) · [Unity animation](media/blunt-hit.gif) |
 | `impacts/parry` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 11, 200 × 112, pivot (100, 96), 30 FPS. All 30 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. Backward seeks reproduced the captured frames. Simplified keeps the blade flash, star and ring. Off uses no surface. All three quality levels last one second at default speed. | [Comparison](media/parry-comparison.png) · [Unity animation](media/parry.gif) |
 | `impacts/hit-spark` | Unity 2022.3.62f3 package validation, quality and backward-seek checks passed. Seed 4, 136 × 80, pivot (44, 64), 30 FPS. All 15 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. | [Comparison](media/hit-spark-comparison.png) · [Unity animation](media/hit-spark.gif) |
 | `melee/heavy-cleave` | Verified in Unity and accepted in Play Mode. | [Comparison](media/heavy-cleave-unity-comparison.gif) |
@@ -120,7 +121,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 
 ## impacts
 
-- [ ] `impacts/blunt-hit`
+- [x] `impacts/blunt-hit`
 - [ ] `impacts/bullet-impact`
 - [ ] `impacts/crit-hit`
 - [ ] `impacts/ground-slam`
