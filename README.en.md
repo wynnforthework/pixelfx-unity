@@ -2,7 +2,15 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity 2022.3 LTS and newer. The package includes Heavy Cleave, Fireball Throw, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Fireball Throw, and the original Shuriken.
+
+**Minimum Unity version is 2022.3 LTS.** The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
+
+## Effect previews
+
+| Heavy Cleave | Fireball Throw | Shuriken |
+| --- | --- | --- |
+| ![Heavy Cleave slash and ground impact](docs/media/heavy-cleave.gif) | ![Fireball charge, flight, and two impacts](docs/media/fireball-throw.gif) | ![Spinning Shuriken with a particle trail](docs/media/shuriken.gif) |
 
 ## Open the demo
 
@@ -17,6 +25,8 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 For a local checkout, use **Add package from disk** and select `Packages/com.pixelfx.unity/package.json`. Open the demo from the Tools menu or import **PixelFX Demo** from the package's Samples tab.
 
 ## Preview and author variants
+
+![Unity Effect Library with the effect grid, playback timeline, and parameter controls](docs/media/effect-library.png)
 
 Open **Tools > PixelFX > Effect Library**. Search the grid by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
 
@@ -76,4 +86,8 @@ Baseline [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/529
 - [ ] Port elemental and status effects, then environment, creatures, and UI
 - [ ] Add reusable actor masks, action timing, and front/back sprite layers
 
-The [authoring guide](docs/authoring.md) and [Codex skill](skills/pixelfx-unity/SKILL.md) live with the project. Runtime and editor code are MIT licensed. Credits for the upstream recipes are included in the package's license and notices.
+## Authoring and license
+
+Find each effect by its ID under `Packages/com.pixelfx.unity/Runtime/`. For example, `moves/fireball-throw` maps to [Effects/moves/fireball-throw](Packages/com.pixelfx.unity/Runtime/Effects/moves/fireball-throw). Each effect keeps its drawing code, particles, dedicated stages, and helpers in its own folder. Shared playback, variants, and the registry live in `Core/`. Painter and texture code live in `Rendering/`.
+
+Runtime and editor code are MIT licensed. Credits for the upstream recipes are included in the package's license and notices. [Authoring guide](docs/authoring.md) · [Codex skill](skills/pixelfx-unity/SKILL.md)

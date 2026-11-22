@@ -2,7 +2,15 @@
 
 **简体中文** · [English](README.en.md)
 
-适用于 Unity 2022.3 LTS 及更新版本的程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+
+**最低 Unity 版本为 2022.3 LTS。** 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
+
+## 特效预览
+
+| Heavy Cleave（重劈） | Fireball Throw（火球投掷） | Shuriken（手里剑） |
+| --- | --- | --- |
+| ![重劈斩击与地面冲击](docs/media/heavy-cleave.gif) | ![火球蓄力、飞行和两处爆炸](docs/media/fireball-throw.gif) | ![旋转飞行的手里剑与粒子拖尾](docs/media/shuriken.gif) |
 
 ## 安装与运行样例
 
@@ -17,6 +25,8 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 从本地克隆的仓库安装时，选择 **Add package from disk**，并选中 `Packages/com.pixelfx.unity/package.json`。安装后可从 Tools 菜单打开样例，也可在该包的 **Samples** 标签页导入 **PixelFX Demo**。
 
 ## 预览与保存变体
+
+![Unity Effect Library 的特效网格、播放时间轴和参数面板](docs/media/effect-library.png)
 
 打开 **Tools > PixelFX > Effect Library**。可以按特效名称、ID、类别或变体名称搜索网格。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 可在 `Assets` 下创建变体资产，点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
 
@@ -77,5 +87,7 @@ public sealed class FireballExample : MonoBehaviour
 初始化后的采样阶段，托管内存分配为 0 字节。可通过 **Tools > PixelFX > Measure Quality (1, 10, 30)** 复测。
 
 ## 制作规范与许可
+
+在 `Packages/com.pixelfx.unity/Runtime/` 下按特效 ID 找实现。例如 `moves/fireball-throw` 对应 [Effects/moves/fireball-throw](Packages/com.pixelfx.unity/Runtime/Effects/moves/fireball-throw)。每个特效的绘制代码、粒子、专用阶段和辅助代码集中在自己的目录。共用的播放、变体和注册表位于 `Core/`，画笔和纹理处理位于 `Rendering/`。
 
 运行时和编辑器代码采用 MIT 许可。包内的许可和署名文件记录了上游特效代码的归属。[特效制作规范](docs/authoring.md) · [Codex 技能](skills/pixelfx-unity/SKILL.md)

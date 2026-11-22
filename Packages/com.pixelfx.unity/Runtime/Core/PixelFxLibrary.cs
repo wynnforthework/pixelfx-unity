@@ -4,64 +4,28 @@ using UnityEngine;
 
 namespace PixelFx
 {
-    public enum PixelFxQuality { Full, Simplified, Off }
-
-    [Serializable]
-    public sealed class PixelFxSettings
-    {
-        public int seed;
-        public Color[] palette;
-        [Range(0.15f, 4)] public float scale = 1;
-        [Range(0.1f, 4)] public float playbackSpeed = 1;
-        [Range(0, 2)] public float glow = 1;
-        [Range(0.4f, 1.7f)] public float bladeWidth = 1;
-        [Range(0, 2)] public float sparks = 1;
-        [Range(0, 4)] public float castDuration = 0.95f;
-        [Range(0.25f, 40)] public float flightSpeed = 10.625f;
-        [Range(0.3f, 2)] public float blastSize = 1;
-        [Range(0, 16)] public float spin = 3.5f;
-        [Range(0, 180)] public int trailRate = 68;
-
-        public PixelFxSettings Copy()
-        {
-            var copy = (PixelFxSettings)MemberwiseClone();
-            copy.palette = palette == null ? null : (Color[])palette.Clone();
-            return copy;
-        }
-    }
-
-    public sealed class PixelFxVariant : ScriptableObject
-    {
-        [SerializeField] private string effectId;
-        [SerializeField] private PixelFxSettings settings;
-
-        public string EffectId => effectId;
-        public PixelFxSettings Settings => settings?.Copy();
-
-        public void Configure(string id, PixelFxSettings values)
-        {
-            var definition = PixelFxLibrary.Get(id);
-            effectId = definition.Id;
-            settings = (values ?? definition.Defaults()).Copy();
-        }
-    }
-
     public sealed class PixelFxDefinition
     {
         public string Id { get; }
         public string Name { get; }
         public string Category { get; }
         internal float ThumbnailTime { get; }
+        internal (int Width, int Height, int OriginX, int OriginY) Canvas { get; }
+        internal Func<PixelFxTimeline, PixelFxFrameRenderer> CreateRenderer { get; }
         private readonly int seed;
         private readonly uint[] palette;
 
-        internal PixelFxDefinition(string id, string name, string category, int seed, float thumbnailTime, params uint[] palette)
+        internal PixelFxDefinition(string id, string name, string category, int seed, float thumbnailTime,
+            (int Width, int Height, int OriginX, int OriginY) canvas,
+            Func<PixelFxTimeline, PixelFxFrameRenderer> createRenderer, params uint[] palette)
         {
             Id = id;
             Name = name;
             Category = category;
             this.seed = seed;
             ThumbnailTime = thumbnailTime;
+            Canvas = canvas;
+            CreateRenderer = createRenderer;
             this.palette = palette;
         }
 
@@ -83,17 +47,34 @@ namespace PixelFx
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
             new PixelFxDefinition(HeavyCleave, "Heavy Cleave", "Melee", 5, 0.37f,
+                (HeavyCleaveEffect.Width, HeavyCleaveEffect.Height, HeavyCleaveEffect.OriginX, HeavyCleaveEffect.OriginY),
+                HeavyCleaveEffect.CreateRenderer,
                 0x2a0c10, 0x5c1414, 0xa3241a, 0xe0481c, 0xff8a2a, 0xffc23d, 0xfff0a0, 0xffffff),
             new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f,
+                (FireballThrowEffect.Width, FireballThrowEffect.Height, FireballThrowEffect.OriginX, FireballThrowEffect.OriginY),
+                FireballThrowEffect.CreateRenderer,
                 0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff),
             new PixelFxDefinition(Shuriken, "Shuriken", "Projectile", 17, 0.43f,
+                (ShurikenEffect.Width, ShurikenEffect.Height, ShurikenEffect.OriginX, ShurikenEffect.OriginY),
+                ShurikenEffect.CreateRenderer,
                 0x163341, 0x28788a, 0x46c7d4, 0xbdfcff),
         });
 
+        private static readonly Dictionary<string, PixelFxDefinition> ById = BuildIndex();
+
+        private static Dictionary<string, PixelFxDefinition> BuildIndex()
+        {
+            var index = new Dictionary<string, PixelFxDefinition>(Effects.Count, StringComparer.Ordinal);
+            foreach (var definition in Effects)
+                index.Add(definition.Id, definition);
+            return index;
+        }
+
+        internal static bool Contains(string id) => id != null && ById.ContainsKey(id);
+
         public static PixelFxDefinition Get(string id)
         {
-            foreach (var definition in Effects)
-                if (definition.Id == id) return definition;
+            if (id != null && ById.TryGetValue(id, out var definition)) return definition;
             throw new ArgumentException("Unknown PixelFX effect: " + id, nameof(id));
         }
 

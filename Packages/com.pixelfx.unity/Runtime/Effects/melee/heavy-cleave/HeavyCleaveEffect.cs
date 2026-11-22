@@ -37,6 +37,24 @@ namespace PixelFx
             (glintX, glintY) = OnSwing(Radius - 3, 0);
         }
 
+        internal static PixelFxFrameRenderer CreateRenderer(PixelFxTimeline timeline)
+        {
+            var effect = new HeavyCleaveEffect();
+            var settings = timeline.Settings;
+            var colors = System.Array.ConvertAll(settings.palette, color => PixelFxLibrary.Pack(color));
+            bool full = timeline.Quality == PixelFxQuality.Full;
+            void Reset() => effect.Reset(settings.seed, colors, 0x4a3f69, settings.bladeWidth, settings.sparks, full);
+            Reset();
+            double previousTime = 0;
+            return (pixels, _, time, _) =>
+            {
+                if (time < previousTime) Reset();
+                effect.Advance(time);
+                effect.Render(pixels, true, settings.glow);
+                previousTime = time;
+            };
+        }
+
         internal void Reset(int seed, uint[] colors, uint stoneColor,
             double bladeWidth = 1, double sparks = 1, bool full = true)
         {

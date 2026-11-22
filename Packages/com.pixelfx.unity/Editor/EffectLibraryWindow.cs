@@ -58,18 +58,11 @@ namespace PixelFx.Editor
             foreach (string guid in AssetDatabase.FindAssets("t:PixelFxVariant"))
             {
                 var asset = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(AssetDatabase.GUIDToAssetPath(guid));
-                if (asset != null && IsRegistered(asset.EffectId)) variants.Add(asset);
+                if (asset != null && PixelFxLibrary.Contains(asset.EffectId)) variants.Add(asset);
             }
             variants.Sort((a, b) => string.Compare(a.name, b.name, StringComparison.OrdinalIgnoreCase));
             ClearThumbnails();
             Repaint();
-        }
-
-        private static bool IsRegistered(string id)
-        {
-            foreach (var effect in PixelFxLibrary.Effects)
-                if (effect.Id == id) return true;
-            return false;
         }
 
         private void Reload()
@@ -80,7 +73,7 @@ namespace PixelFx.Editor
 
         private void Select(string id, PixelFxVariant variant)
         {
-            selectedId = IsRegistered(id) ? id : PixelFxLibrary.HeavyCleave;
+            selectedId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
             selectedVariant = variant;
             draft = variant != null ? variant.Settings : PixelFxLibrary.Get(selectedId).Defaults();
             draft ??= PixelFxLibrary.Get(selectedId).Defaults();

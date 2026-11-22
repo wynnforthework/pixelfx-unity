@@ -9,7 +9,9 @@
 
 ## Add or migrate a definition
 
-Register a unique category/effect ID, defaults and representative thumbnail time in the library. Use existing painter primitives and buffers. Expose only settings that change gameplay readability or appearance. Validate ranges in the timeline and preserve legacy behavior at defaults. Use one shared rendering path for the editor and the runtime.
+Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/`. Preserve the full ID path, such as `melee/heavy-cleave` or `moves/fireball-throw`. Keep the effect renderer, particles, effect-specific stage code, and dedicated helpers in that directory. Split a large effect by responsibility with effect-prefixed filenames. Common playback, variants, and the registry live in `Runtime/Core/`. Reusable rasterization and texture code live in `Runtime/Rendering/`. Preserve Unity `.meta` files when moving existing scripts or assets.
+
+Register a unique effect ID, defaults, thumbnail time, canvas bounds, and renderer factory in `Runtime/Core/PixelFxLibrary.cs`. Use existing painter primitives and buffers. Expose only settings that change gameplay readability or appearance. Validate ranges in the timeline and preserve legacy behavior at defaults. Use one shared rendering path for the editor and the runtime.
 
 Full quality may add sparks, smoke and debris. Simplified retains the key shape, travel cues and hit flash. Off schedules timing only. Quality switches must not change duration or completion. Use stable seeds and avoid per-frame allocations in an effect's steady state.
 
