@@ -6,10 +6,10 @@ Procedural pixel art effects for Unity 2022.3 LTS and newer. The package include
 
 Open the repository root in Unity. Choose **Tools > PixelFX > Open Demo**. If prompted, let Unity import and compile the sample, then open the menu again. Enter Play Mode and use the buttons to switch effects. The original **Open Heavy Cleave Demo** also remains available.
 
-For an existing project, use **Window > Package Manager > + > Add package from git URL**. After the public release is available, use this URL pattern with the repository owner:
+For an existing project, use **Window > Package Manager > + > Add package from git URL**, then enter:
 
 ```text
-https://github.com/<owner>/pixelfx-unity.git?path=/Packages/com.pixelfx.unity#v0.1.0
+https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.unity#v0.1.0
 ```
 
 For a local checkout, use **Add package from disk** and select `Packages/com.pixelfx.unity/package.json`. Open the demo from the Tools menu or import **PixelFX Demo** from the package's Samples tab.
