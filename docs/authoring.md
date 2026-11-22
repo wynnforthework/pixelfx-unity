@@ -7,6 +7,20 @@
 - For a projectile with gameplay-dependent travel, use Fireball Throw. The timeline maps elapsed time to cast, flight and impact. Place effects at the context anchors. Compute flight time from distance and speed, accept zero distance, and accept explicit hit positions and strengths. Keep damage and target selection in gameplay code.
 - For a time-sampled effect, use Shuriken. Derive each particle from the seed and its emission index so seeking does not require running the preceding frames. For stateful simulation, step at 120 Hz and reset and replay on backward seeks.
 
+## Actor-relative effect layers
+
+Choose a layer for each effect stage or visual element. The names describe how it overlaps the bound actor. Anchors set the position independently and can be overridden for a stage or hit.
+
+| Layer | Default anchor | Draw order relative to the actor |
+| --- | --- | --- |
+| Lower | Feet | Draw the whole element behind the actor. Use for ground marks or shadows. |
+| Middle | Body center | Draw the far half behind the actor and the near half in front. For a ring in the standard view, these are the upper and lower arcs of the ring. |
+| Upper | Head | Draw the whole element in front of the actor. A foreground impact can use the body or hit anchor and keep this draw order. |
+
+For Middle, split the effect using its authored near/far geometry. A ring uses its own center and plane, so the split follows the ring as it moves. Both passes share the same anchor and playback time. Each stage selects its own actor and may use only the layers it needs.
+
+For an A-to-B cast, put the cast ring in Middle relative to A and play the projectile along its travel path. Put the explosion in Upper relative to B, at B's hit anchor, and follow B throughout the impact phase.
+
 ## Add or migrate a definition
 
 Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/`. Preserve the full ID path, such as `melee/heavy-cleave` or `moves/fireball-throw`. Keep the effect renderer, particles, effect-specific stage code, and dedicated helpers in that directory. Split a large effect by responsibility with effect-prefixed filenames. Common playback, variants, and the registry live in `Runtime/Core/`. Reusable rasterization and texture code live in `Runtime/Rendering/`. Preserve Unity `.meta` files when moving existing scripts or assets.
