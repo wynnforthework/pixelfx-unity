@@ -56,9 +56,19 @@ namespace PixelFx
         public const string CriticalHit = "impacts/crit-hit";
         public const string GroundSlam = "impacts/ground-slam";
         public const string SpellCharge = "arcane/spell-charge";
+        public const string SmallExplosion = "explosions/small-explosion";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(SmallExplosion, "Small Explosion", "Explosions", 7, 6f / 30, SmallExplosionEffect.Duration,
+                (SmallExplosionEffect.Width, SmallExplosionEffect.Height, SmallExplosionEffect.OriginX, SmallExplosionEffect.OriginY),
+                SmallExplosionEffect.CreateRenderer,
+                0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = SmallExplosionEffect.CreateLayerRenderer,
+            },
             new PixelFxDefinition(SpellCharge, "Spell Charge", "Arcane", 5, 16f / 30, SpellChargeEffect.Duration,
                 (SpellChargeEffect.Width, SpellChargeEffect.Height, SpellChargeEffect.OriginX, SpellChargeEffect.OriginY),
                 SpellChargeEffect.CreateRenderer,

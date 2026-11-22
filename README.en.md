@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Fireball, Fireball Throw, Spell Charge, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Fireball, Fireball Throw, Spell Charge, Small Explosion, and the original Shuriken.
 
 The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
@@ -98,7 +98,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, and Fireball passed the upstream visual comparison (**9 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Hit Flash animation](docs/media/hit-flash.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif) · [Ground Slam animation](docs/media/ground-slam.gif) · [Spell Charge animation](docs/media/spell-charge.gif) · [Fireball animation](docs/media/fireball.gif)
+The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, Fireball, and Small Explosion passed the upstream visual comparison (**10 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Hit Flash animation](docs/media/hit-flash.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif) · [Ground Slam animation](docs/media/ground-slam.gif) · [Spell Charge animation](docs/media/spell-charge.gif) · [Fireball animation](docs/media/fireball.gif) · [Small Explosion animation](docs/media/small-explosion.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken
