@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Parry（招架）、Blunt Hit（钝击）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
 
 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
 
@@ -66,7 +66,7 @@ public sealed class FireballExample : MonoBehaviour
 
 ## 移植进度
 
-移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **4 / 244**，包括 Heavy Cleave、Hit Spark、Parry 和 Blunt Hit。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **5 / 244**，包括 Heavy Cleave、Hit Spark、Parry、Blunt Hit 和 Critical Hit。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken

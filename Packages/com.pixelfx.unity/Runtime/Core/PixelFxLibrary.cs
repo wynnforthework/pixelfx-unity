@@ -48,6 +48,7 @@ namespace PixelFx
         public const string HitSpark = "impacts/hit-spark";
         public const string Parry = "impacts/parry";
         public const string BluntHit = "impacts/blunt-hit";
+        public const string CriticalHit = "impacts/crit-hit";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
@@ -75,6 +76,10 @@ namespace PixelFx
                 (BluntHitEffect.Width, BluntHitEffect.Height, BluntHitEffect.OriginX, BluntHitEffect.OriginY),
                 BluntHitEffect.CreateRenderer,
                 0x1d1620, 0x4a3a3c, 0x7d6a66, 0xb09c90, 0xdccab4, 0xf6ead2, 0xffffff),
+            new PixelFxDefinition(CriticalHit, "Critical Hit", "Impacts", 3, 2f / 30, CriticalHitEffect.Duration,
+                (CriticalHitEffect.Width, CriticalHitEffect.Height, CriticalHitEffect.OriginX, CriticalHitEffect.OriginY),
+                CriticalHitEffect.CreateRenderer,
+                0x2a0510, 0x5c0a1c, 0xa3142a, 0xe0302c, 0xff7a2a, 0xffc23d, 0xfff09a, 0xffffff),
         });
 
         private static readonly Dictionary<string, PixelFxDefinition> ById = BuildIndex();
