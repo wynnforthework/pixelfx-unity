@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace PixelFx.Editor
@@ -42,6 +43,7 @@ namespace PixelFx.Editor
         private PixelFxSettings draft;
         private EffectPreviewScene preview;
         private GameObject loadedActor;
+        private bool refreshActor;
         private Vector2 gridScroll, settingsScroll;
         private float time;
         private bool playing;
@@ -56,14 +58,20 @@ namespace PixelFx.Editor
             RefreshVariants();
             Select(selectedId, selectedVariant);
             EditorApplication.update += Tick;
-            EditorApplication.projectChanged += RefreshVariants;
+            EditorApplication.projectChanged += OnProjectChanged;
+            ObjectChangeEvents.changesPublished += OnObjectsChanged;
+            PrefabStage.prefabStageOpened += OnPrefabStageChanged;
+            PrefabStage.prefabStageClosing += OnPrefabStageChanged;
             Undo.undoRedoPerformed += Reload;
         }
 
         private void OnDisable()
         {
             EditorApplication.update -= Tick;
-            EditorApplication.projectChanged -= RefreshVariants;
+            EditorApplication.projectChanged -= OnProjectChanged;
+            ObjectChangeEvents.changesPublished -= OnObjectsChanged;
+            PrefabStage.prefabStageOpened -= OnPrefabStageChanged;
+            PrefabStage.prefabStageClosing -= OnPrefabStageChanged;
             Undo.undoRedoPerformed -= Reload;
             preview?.Dispose();
             preview = null;
@@ -105,6 +113,85 @@ namespace PixelFx.Editor
             Select(selectedId, selectedVariant);
         }
 
+        private void OnProjectChanged()
+        {
+            RefreshVariants();
+            refreshActor |= !ReferenceEquals(previewActor, null);
+        }
+
+        private void OnPrefabStageChanged(PrefabStage stage)
+        {
+            if (previewActor != null && stage.assetPath == AssetDatabase.GetAssetPath(previewActor))
+                refreshActor = true;
+        }
+
+        private GameObject ActorSource()
+        {
+            var stage = PrefabStageUtility.GetCurrentPrefabStage();
+            if (previewActor != null && stage != null && stage.assetPath == AssetDatabase.GetAssetPath(previewActor))
+                return stage.prefabContentsRoot;
+            return previewActor;
+        }
+
+        private void OnObjectsChanged(ref ObjectChangeEventStream changes)
+        {
+            if (previewActor == null || refreshActor) return;
+            var source = ActorSource();
+            for (int i = 0; i < changes.length; i++)
+            {
+                int instanceId;
+                switch (changes.GetEventType(i))
+                {
+                    case ObjectChangeKind.ChangeGameObjectOrComponentProperties:
+                        changes.GetChangeGameObjectOrComponentPropertiesEvent(i, out var properties);
+                        instanceId = properties.instanceId;
+                        break;
+                    case ObjectChangeKind.ChangeAssetObjectProperties:
+                        changes.GetChangeAssetObjectPropertiesEvent(i, out var asset);
+                        instanceId = asset.instanceId;
+                        break;
+                    case ObjectChangeKind.ChangeGameObjectStructureHierarchy:
+                        changes.GetChangeGameObjectStructureHierarchyEvent(i, out var hierarchy);
+                        instanceId = hierarchy.instanceId;
+                        break;
+                    case ObjectChangeKind.ChangeGameObjectStructure:
+                        changes.GetChangeGameObjectStructureEvent(i, out var structure);
+                        instanceId = structure.instanceId;
+                        break;
+                    case ObjectChangeKind.CreateGameObjectHierarchy:
+                        changes.GetCreateGameObjectHierarchyEvent(i, out var created);
+                        instanceId = created.instanceId;
+                        break;
+                    case ObjectChangeKind.DestroyGameObjectHierarchy:
+                        changes.GetDestroyGameObjectHierarchyEvent(i, out var destroyed);
+                        instanceId = destroyed.parentInstanceId;
+                        break;
+                    case ObjectChangeKind.ChangeGameObjectParent:
+                        changes.GetChangeGameObjectParentEvent(i, out var parent);
+                        if (IsActorObject(parent.previousParentInstanceId, source))
+                        {
+                            refreshActor = true;
+                            return;
+                        }
+                        instanceId = parent.instanceId;
+                        break;
+                    default:
+                        continue;
+                }
+                if (!IsActorObject(instanceId, source)) continue;
+                refreshActor = true;
+                return;
+            }
+        }
+
+        private bool IsActorObject(int instanceId, GameObject source)
+        {
+            var changed = EditorUtility.InstanceIDToObject(instanceId);
+            var obj = changed is Component component ? component.gameObject : changed as GameObject;
+            return obj != null && (obj.transform.IsChildOf(previewActor.transform)
+                || (source != null && obj.transform.IsChildOf(source.transform)));
+        }
+
         private void Select(string id, PixelFxVariant variant)
         {
             selectedId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
@@ -121,10 +208,12 @@ namespace PixelFx.Editor
         private void Rebuild()
         {
             preview ??= new EffectPreviewScene();
-            if (loadedActor != previewActor)
+            var source = ActorSource();
+            if (refreshActor || !ReferenceEquals(loadedActor, source))
             {
-                preview.SetActor(previewActor);
-                loadedActor = previewActor;
+                refreshActor = false;
+                preview.SetActor(source);
+                loadedActor = source;
             }
             preview.SetEffect(selectedId, draft, targetDistance, splash, quality, actorIsTarget);
             time = Mathf.Clamp(time, 0, preview.Duration);
@@ -133,6 +222,7 @@ namespace PixelFx.Editor
 
         private void Tick()
         {
+            if (refreshActor) Rebuild();
             double now = EditorApplication.timeSinceStartup;
             float dt = (float)(now - previous);
             previous = now;
