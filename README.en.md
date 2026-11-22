@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity. The package includes Heavy Cleave, Fireball Throw, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Fireball Throw, and the original Shuriken.
 
 The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
@@ -16,7 +16,7 @@ The sample project uses **Unity 2022.3.62f3**, which was used to verify installa
 
 ## Open the demo
 
-Open the repository root in Unity. Choose **Tools > PixelFX > Open Demo**. If prompted, let Unity import and compile the sample, then open the menu again. Enter Play Mode and use the buttons to switch effects. The original **Open Heavy Cleave Demo** also remains available.
+Open the repository root in Unity. Choose **Tools > PixelFX > Open Demo**. If prompted, let Unity import and compile the sample, then open the menu again. Enter Play Mode and use the buttons to switch effects. If you previously imported the sample, reimport **PixelFX Demo** from the Package Manager to load new buttons. The original **Open Heavy Cleave Demo** also remains available.
 
 For an existing project, use **Window > Package Manager > + > Add package from git URL**, then enter:
 
@@ -80,7 +80,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-The migration targets `patch-gg/pixelfx@5294518`. **2 / 244** effects passed the upstream visual comparison, Heavy Cleave and Hit Spark. Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif)
+The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave and Hit Spark passed the upstream visual comparison (**2 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken

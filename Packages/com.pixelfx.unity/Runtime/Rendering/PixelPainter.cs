@@ -114,14 +114,44 @@ namespace PixelFx
                     double dx = (col + 0.5 - x) / radius, distance = dx * dx + dy * dy;
                     if (distance >= 1) continue;
                     double falloff = 1 - Sqrt(distance);
-                    double k = strength * falloff * falloff * LightStrength;
-                    if (k <= 0.004) continue;
-                    int index = row * width + col;
-                    uint under = light[index];
-                    light[index] = Rgb(Min(255, Channel(under, 0) + r * k),
-                        Min(255, Channel(under, 8) + g * k), Min(255, Channel(under, 16) + b * k)) & 0xffffff;
+                    AddLight(row * width + col, r, g, b, strength * falloff * falloff * LightStrength);
                 }
             }
+        }
+
+        internal void GlowLine(double x0, double y0, double x1, double y1, double radius, uint ink, double strength)
+        {
+            if (radius < 1 || strength <= 0.004) return;
+            x0 += originX;
+            x1 += originX;
+            y0 += originY;
+            y1 += originY;
+            double vx = x1 - x0, vy = y1 - y0;
+            double lengthSquared = Max(1e-9, vx * vx + vy * vy);
+            int left = Max(0, (int)Floor(Min(x0, x1) - radius));
+            int right = Min(width - 1, (int)Ceiling(Max(x0, x1) + radius));
+            int top = Max(0, (int)Floor(Min(y0, y1) - radius));
+            int bottom = Min(height - 1, (int)Ceiling(Max(y0, y1) + radius));
+            int r = Channel(ink, 0), g = Channel(ink, 8), b = Channel(ink, 16);
+            for (int row = top; row <= bottom; row++)
+            for (int col = left; col <= right; col++)
+            {
+                double x = col + 0.5 - x0, y = row + 0.5 - y0;
+                double u = Min(1, Max(0, (x * vx + y * vy) / lengthSquared));
+                double dx = x - u * vx, dy = y - u * vy;
+                double distance = Sqrt(dx * dx + dy * dy) / radius;
+                if (distance >= 1) continue;
+                double falloff = 1 - distance;
+                AddLight(row * width + col, r, g, b, strength * falloff * falloff * LightStrength);
+            }
+        }
+
+        private void AddLight(int index, int r, int g, int b, double strength)
+        {
+            if (strength <= 0.004) return;
+            uint under = light[index];
+            light[index] = Rgb(Min(255, Channel(under, 0) + r * strength),
+                Min(255, Channel(under, 8) + g * strength), Min(255, Channel(under, 16) + b * strength)) & 0xffffff;
         }
 
         private void Bounds(double x, double y, double radius, out int left, out int right, out int top, out int bottom)
@@ -130,6 +160,23 @@ namespace PixelFx
             right = Min(width - 1, (int)Ceiling(x + radius));
             top = Max(0, (int)Floor(y - radius));
             bottom = Min(height - 1, (int)Ceiling(y + radius));
+        }
+
+        internal void FadeLightEdges()
+        {
+            const int margin = 8;
+            for (int y = 0; y < height; y++)
+            for (int x = 0; x < width; x++)
+            {
+                int edge = Min(Min(x, width - 1 - x), Min(y, height - 1 - y));
+                int index = y * width + x;
+                uint ink = light[index];
+                if (edge >= margin || ink == 0) continue;
+                double u = (edge + 0.5) / margin;
+                double k = u * u * (3 - 2 * u);
+                light[index] = Rgb(Floor(Channel(ink, 0) * k + 0.5), Floor(Channel(ink, 8) * k + 0.5),
+                    Floor(Channel(ink, 16) * k + 0.5)) & 0xffffff;
+            }
         }
 
         // Unity uploads bottom-up RGBA32. The standalone renderer can also emit top-down RGBA.

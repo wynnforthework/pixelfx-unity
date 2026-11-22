@@ -3,6 +3,13 @@ namespace PixelFx
     internal struct PixelFxRandom
     {
         private uint state;
+
+        internal PixelFxRandom(int seed)
+        {
+            state = unchecked((uint)seed);
+            if (state == 0) state = 1;
+        }
+
         internal PixelFxRandom(int seed, int index)
         {
             unchecked

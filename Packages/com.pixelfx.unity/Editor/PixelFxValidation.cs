@@ -16,7 +16,6 @@ namespace PixelFx.Editor
 
         public static void Run()
         {
-            Check(PixelFxLibrary.Effects.Count == 3, "Catalog");
             ValidateVariants();
             ValidateStages();
             ValidatePlayback();
@@ -170,7 +169,7 @@ namespace PixelFx.Editor
                         settings.seed += i;
                         var timeline = new PixelFxTimeline(PixelFxLibrary.HeavyCleave, settings, new PixelFxContext { Quality = quality });
                         surfaces[i] = new PixelFxSurface(timeline, false);
-                        surfaces[i].Draw(PixelFxStage.Cleave, 0.5f, 1);
+                        surfaces[i].Draw(PixelFxStage.Single, 0.5f, 1);
                     }
                     long raster = 0, upload = 0, allocated = 0;
                     for (int frame = 0; frame < 57; frame++)
@@ -179,7 +178,7 @@ namespace PixelFx.Editor
                         {
                             long startBytes = GC.GetAllocatedBytesForCurrentThread();
                             long start = Stopwatch.GetTimestamp();
-                            bool changed = surface.Render(PixelFxStage.Cleave, frame / 30f, 1);
+                            bool changed = surface.Render(PixelFxStage.Single, frame / 30f, 1);
                             long middle = Stopwatch.GetTimestamp();
                             if (changed) surface.Submit();
                             long end = Stopwatch.GetTimestamp();

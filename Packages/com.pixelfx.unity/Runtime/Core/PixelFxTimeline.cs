@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace PixelFx
 {
-    internal enum PixelFxStage { Cleave, Shuriken, Cast, Flight, Impact }
+    internal enum PixelFxStage { Single, Cast, Flight, Impact }
 
     internal sealed class PixelFxTimeline
     {
@@ -14,7 +14,6 @@ namespace PixelFx
         private readonly Vector3 anchor;
         private readonly float angle;
         private readonly FireballThrowTimeline fireball;
-        private readonly PixelFxStage singleStage;
 
         internal string Id => Definition.Id;
         internal PixelFxHit[] Hits => fireball?.Hits ?? Array.Empty<PixelFxHit>();
@@ -43,16 +42,14 @@ namespace PixelFx
             anchor = context.Position;
             Vector2 direction = context.Direction.sqrMagnitude > 0 ? context.Direction.normalized : Vector2.right;
             angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            singleStage = id == PixelFxLibrary.HeavyCleave ? PixelFxStage.Cleave : PixelFxStage.Shuriken;
             if (id == PixelFxLibrary.FireballThrow)
             {
                 fireball = new FireballThrowTimeline(context, Settings, direction, angle);
-                Duration = (CastTime + FlightTime + FireballThrowTimeline.ImpactDuration) / Settings.playbackSpeed;
+                Duration = (CastTime + FlightTime + definition.Duration) / Settings.playbackSpeed;
             }
             else
             {
-                double duration = id == PixelFxLibrary.HeavyCleave ? HeavyCleaveEffect.Duration : ShurikenEffect.Duration;
-                Duration = (float)duration / Settings.playbackSpeed;
+                Duration = definition.Duration / Settings.playbackSpeed;
             }
         }
 
@@ -66,7 +63,7 @@ namespace PixelFx
             position = anchor;
             angle = this.angle;
             strength = 1;
-            stage = singleStage;
+            stage = PixelFxStage.Single;
             if (index >= SurfaceCount || seconds < 0 || seconds >= Duration) return false;
             return fireball == null || fireball.Sample(index, out stage, ref localTime, ref position, out angle, out strength);
         }

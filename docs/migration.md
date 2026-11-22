@@ -1,6 +1,35 @@
 # Upstream migration checklist
 
-Baseline `5294518ce7c72e48b6100a744596e0acf57f2826`. Checked entries passed the visual comparison. Adaptations are noted with remaining work.
+Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826). This file is the source of truth for the 244 effect IDs and the migration queue.
+
+## Resume here
+
+| Effect or dependency | Status | Next action |
+| --- | --- | --- |
+| `impacts/parry` | Next | Port the blade cross, broken ring and spark fan. Compare seed 11 at 30 FPS. |
+| `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
+| `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
+
+1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
+2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md).
+3. Set the queue status to **In progress** before starting. After implementation, record any unfinished step, dependency, or validation failure directly in the queue before stopping.
+4. Run `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3 and compare representative Full frames against the pinned JavaScript source at the same seed and 30 FPS. Check anchor, duration, the library preview, asset playback, and the Simplified and Off quality levels.
+5. Check a catalog entry when it passes. Store the seed, comparison frames and any intentional differences in the completed entry or a linked evidence file. Update both README totals to match the checked entries. The original Shuriken belongs outside the upstream count.
+
+An unchecked entry without a queue note is pending. Keep upcoming batches small enough to leave a verified checkpoint between them.
+
+## Latest checkpoint
+
+**2 / 244 verified** in Unity. Parry is next.
+
+| Effect | Verification | Evidence |
+| --- | --- | --- |
+| `impacts/hit-spark` | Unity 2022.3.62f3 package validation, quality and backward-seek checks passed. Seed 4, 136 × 80, pivot (44, 64), 30 FPS. All 15 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. | [Comparison](media/hit-spark-comparison.png) · [Unity animation](media/hit-spark.gif) |
+| `melee/heavy-cleave` | Verified in Unity and accepted in Play Mode. | [Comparison](media/heavy-cleave-unity-comparison.gif) |
+
+For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data. The sprite-sheet exporter multiplies color by alpha when pasting each frame. Unity one-shots finish at their duration, so compare frames sampled before that endpoint.
+
+## Upstream catalog
 
 ## arcane
 
@@ -96,7 +125,7 @@ Baseline `5294518ce7c72e48b6100a744596e0acf57f2826`. Checked entries passed the 
 - [ ] `impacts/ground-slam`
 - [ ] `impacts/heavy-landing`
 - [ ] `impacts/hit-flash`
-- [ ] `impacts/hit-spark`
+- [x] `impacts/hit-spark`
 - [ ] `impacts/impact-frame`
 - [ ] `impacts/parry`
 - [ ] `impacts/ricochet`

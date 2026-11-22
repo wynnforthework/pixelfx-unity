@@ -11,7 +11,7 @@
 
 Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/`. Preserve the full ID path, such as `melee/heavy-cleave` or `moves/fireball-throw`. Keep the effect renderer, particles, effect-specific stage code, and dedicated helpers in that directory. Split a large effect by responsibility with effect-prefixed filenames. Common playback, variants, and the registry live in `Runtime/Core/`. Reusable rasterization and texture code live in `Runtime/Rendering/`. Preserve Unity `.meta` files when moving existing scripts or assets.
 
-Register a unique effect ID, defaults, thumbnail time, canvas bounds, and renderer factory in `Runtime/Core/PixelFxLibrary.cs`. Use existing painter primitives and buffers. Expose only settings that change gameplay readability or appearance. Validate ranges in the timeline and preserve legacy behavior at defaults. Use one shared rendering path for the editor and the runtime.
+Register a unique effect ID, defaults, duration, thumbnail time, canvas bounds, and renderer factory in `Runtime/Core/PixelFxLibrary.cs`. Use existing painter primitives and buffers. Expose only settings that change gameplay readability or appearance. Validate ranges in the timeline and preserve legacy behavior at defaults. Use one shared rendering path for the editor and the runtime.
 
 Include an asset named after the final segment of the effect ID, such as `fireball-throw.asset`, in the effect folder. It can be assigned to the same `PixelFxVariant` field as a user variant. Use a built-in asset as the template, set its name and effect ID, and give the new asset its own Unity GUID. The built-in asset resolves its settings from the C# registry through `useLibraryDefaults`. Saved variants keep a snapshot of their settings.
 

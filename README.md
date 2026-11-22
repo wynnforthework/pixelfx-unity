@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
 
 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
 
@@ -17,7 +17,7 @@ Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Thro
 
 ## 安装与运行样例
 
-克隆仓库后，用 Unity 打开仓库根目录，选择 **Tools > PixelFX > Open Demo**。首次打开时，等样例导入和编译完成后再点一次菜单。进入 Play Mode 后可用按钮切换三个特效。也可以通过 **Open Heavy Cleave Demo** 打开原有的重劈样例。
+克隆仓库后，用 Unity 打开仓库根目录，选择 **Tools > PixelFX > Open Demo**。首次打开时，等样例导入和编译完成后再点一次菜单。进入 Play Mode 后可用按钮切换特效。之前已导入样例的项目可在 Package Manager 重新导入 **PixelFX Demo**，加载新增按钮。也可以通过 **Open Heavy Cleave Demo** 打开原有的重劈样例。
 
 在已有的 Unity 项目中，打开 **Window > Package Manager > + > Add package from git URL**，输入以下地址。
 

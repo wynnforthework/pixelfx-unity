@@ -21,6 +21,7 @@ namespace PixelFx.Samples
             GUILayout.BeginArea(new Rect(12, 12, Screen.width - 24, 72));
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Heavy Cleave")) Play(PixelFxLibrary.HeavyCleave);
+            if (GUILayout.Button("Hit Spark")) Play(PixelFxLibrary.HitSpark);
             if (GUILayout.Button("Fireball Throw")) Play(PixelFxLibrary.FireballThrow);
             if (GUILayout.Button("Shuriken")) Play(PixelFxLibrary.Shuriken);
             if (variant != null && GUILayout.Button("Play Assigned Effect"))

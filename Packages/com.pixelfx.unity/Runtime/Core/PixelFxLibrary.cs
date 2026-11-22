@@ -10,12 +10,13 @@ namespace PixelFx
         public string Name { get; }
         public string Category { get; }
         internal float ThumbnailTime { get; }
+        internal float Duration { get; }
         internal (int Width, int Height, int OriginX, int OriginY) Canvas { get; }
         internal Func<PixelFxTimeline, PixelFxFrameRenderer> CreateRenderer { get; }
         private readonly int seed;
         private readonly uint[] palette;
 
-        internal PixelFxDefinition(string id, string name, string category, int seed, float thumbnailTime,
+        internal PixelFxDefinition(string id, string name, string category, int seed, float thumbnailTime, float duration,
             (int Width, int Height, int OriginX, int OriginY) canvas,
             Func<PixelFxTimeline, PixelFxFrameRenderer> createRenderer, params uint[] palette)
         {
@@ -24,6 +25,7 @@ namespace PixelFx
             Category = category;
             this.seed = seed;
             ThumbnailTime = thumbnailTime;
+            Duration = duration;
             Canvas = canvas;
             CreateRenderer = createRenderer;
             this.palette = palette;
@@ -43,21 +45,26 @@ namespace PixelFx
         public const string HeavyCleave = "melee/heavy-cleave";
         public const string FireballThrow = "moves/fireball-throw";
         public const string Shuriken = "original/shuriken";
+        public const string HitSpark = "impacts/hit-spark";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
-            new PixelFxDefinition(HeavyCleave, "Heavy Cleave", "Melee", 5, 0.37f,
+            new PixelFxDefinition(HeavyCleave, "Heavy Cleave", "Melee", 5, 0.37f, (float)HeavyCleaveEffect.Duration,
                 (HeavyCleaveEffect.Width, HeavyCleaveEffect.Height, HeavyCleaveEffect.OriginX, HeavyCleaveEffect.OriginY),
                 HeavyCleaveEffect.CreateRenderer,
                 0x2a0c10, 0x5c1414, 0xa3241a, 0xe0481c, 0xff8a2a, 0xffc23d, 0xfff0a0, 0xffffff),
-            new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f,
+            new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f, FireballThrowTimeline.ImpactDuration,
                 (FireballThrowEffect.Width, FireballThrowEffect.Height, FireballThrowEffect.OriginX, FireballThrowEffect.OriginY),
                 FireballThrowEffect.CreateRenderer,
                 0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff),
-            new PixelFxDefinition(Shuriken, "Shuriken", "Projectile", 17, 0.43f,
+            new PixelFxDefinition(Shuriken, "Shuriken", "Projectile", 17, 0.43f, (float)ShurikenEffect.Duration,
                 (ShurikenEffect.Width, ShurikenEffect.Height, ShurikenEffect.OriginX, ShurikenEffect.OriginY),
                 ShurikenEffect.CreateRenderer,
                 0x163341, 0x28788a, 0x46c7d4, 0xbdfcff),
+            new PixelFxDefinition(HitSpark, "Hit Spark", "Impacts", 4, 1f / 30, HitSparkEffect.Duration,
+                (HitSparkEffect.Width, HitSparkEffect.Height, HitSparkEffect.OriginX, HitSparkEffect.OriginY),
+                HitSparkEffect.CreateRenderer,
+                0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffe26b, 0xfff3a6, 0xffffff),
         });
 
         private static readonly Dictionary<string, PixelFxDefinition> ById = BuildIndex();
