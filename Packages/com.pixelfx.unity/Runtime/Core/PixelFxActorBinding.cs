@@ -9,13 +9,18 @@ namespace PixelFx
     public readonly struct PixelFxActorBinding
     {
         public SpriteRenderer Actor { get; }
+        internal Renderer SortingRenderer { get; }
         public Transform Anchor { get; }
         public PixelFxLayer Layer { get; }
         public bool Follow { get; }
 
         public PixelFxActorBinding(SpriteRenderer actor, PixelFxLayer layer, Transform anchor = null, bool follow = true)
+            : this((Renderer)actor, layer, anchor, follow) { }
+
+        internal PixelFxActorBinding(Renderer actor, PixelFxLayer layer, Transform anchor = null, bool follow = true)
         {
-            Actor = actor;
+            Actor = actor as SpriteRenderer;
+            SortingRenderer = actor;
             Anchor = anchor;
             Layer = layer;
             Follow = follow;
@@ -24,8 +29,8 @@ namespace PixelFx
         internal Vector3 PositionOr(Vector3 fallback, PixelFxLayer? defaultAnchor = null)
         {
             if (Anchor != null) return Anchor.position;
-            if (Actor == null) return fallback;
-            var bounds = Actor.bounds;
+            if (SortingRenderer == null) return fallback;
+            var bounds = SortingRenderer.bounds;
             var position = bounds.center;
             var anchorLayer = defaultAnchor ?? Layer;
             if (anchorLayer == PixelFxLayer.Lower) position.y = bounds.min.y;

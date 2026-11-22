@@ -32,6 +32,10 @@ For a local checkout, use **Add package from disk** and select `Packages/com.pix
 
 Open **Tools > PixelFX > Effect Library**. Search the grid by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
 
+Drag with the left or middle mouse button to pan, scroll to zoom, and drag with the right mouse button or Alt + left mouse button to orbit. **Ortho / Persp** switches projection. **Front** resets the viewing angle and **Frame** centers and fits the actor and effect.
+
+Drag a scene object from the Hierarchy or a prefab from the Project window into **Actor**. The preview scene uses a copy and supports sprite renderers, static and skinned meshes, and Spine SkeletonRenderer objects through the project's existing spine-unity runtime. Choose **Caster** or **Target** for Fireball Throw. The character holds a static pose while the timeline controls the effect. Hit Flash recolors the silhouette of a readable sprite and keeps its impact accents on other renderers.
+
 Click **Copy for AI** in the preview toolbar to copy the selected effect ID, asset path, unsaved settings, and preview state. Paste the text into Codex with your requested changes.
 
 ## Play from code
@@ -69,7 +73,7 @@ Open **Tools > PixelFX > Open Demo**, enter Play Mode, and click **Layered Fireb
 
 Click **Ground Slam** in the same demo to see an impact at the actor's feet. Bind with `new PixelFxActorBinding(actor, PixelFxLayer.Middle, follow: false)` to snapshot the foot position, draw the cracks, dust column and far arc behind the actor, and draw the near arc and rocks in front.
 
-Click **Hit Flash** to see the actor flash white and red with an outline. Bind the hit actor with `new PixelFxActorBinding(actor, PixelFxLayer.Upper, chestAnchor)`. The optional chest anchor places the impact accents. The silhouette follows the actor's current sprite and scale. Enable **Read/Write** on the sprite texture to draw the silhouette. The impact accents still play when the mask is unavailable. The Effect Library uses a built-in stand-in actor.
+Click **Hit Flash** to see the actor flash white and red with an outline. Bind the hit actor with `new PixelFxActorBinding(actor, PixelFxLayer.Upper, chestAnchor)`. The optional chest anchor places the impact accents. The silhouette follows the actor's current sprite and scale. Enable **Read/Write** on the sprite texture to draw the silhouette. The impact accents still play when the mask is unavailable. The Effect Library uses a built-in stand-in when **Actor** is empty.
 
 Bind a character's `SpriteRenderer` with `PixelFxActorBinding`. Use `PixelFxContext.Binding` for a one-shot, `CastBinding` for the cast and each `PixelFxHit.Binding` for its impact. `Lower` defaults to the feet and draws behind the actor. `Middle` defaults to the body center and uses the effect's authored back and front passes. `Upper` defaults to the head and draws in front of the actor. Supply an anchor `Transform` to place a foreground impact at the body. Bindings follow the actor by default. Set `follow: false` to use the position at playback start. See the [authoring guide](docs/authoring.md#actor-relative-effect-layers).
 

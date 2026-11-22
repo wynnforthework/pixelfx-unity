@@ -33,6 +33,10 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 
 打开 **Tools > PixelFX > Effect Library**。可以按特效名称、ID、类别或变体名称搜索网格。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 可在 `Assets` 下创建变体资产，点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
 
+在预览区用左键或中键拖动平移，滚轮缩放，右键或 Alt + 左键拖动旋转视角。**Ortho / Persp** 切换正交与透视，**Front** 恢复正视角，**Frame** 居中并适配角色和特效。
+
+把 Hierarchy 里的角色或 Project 里的 Prefab 拖到 **Actor** 槽。预览场景使用角色副本，支持 SpriteRenderer、普通或蒙皮网格，以及通过项目已有 spine-unity 运行库加载的 Spine SkeletonRenderer。火球可以将角色设为 **Caster** 或 **Target**。角色以静态姿势显示，时间轴控制特效。Hit Flash 的轮廓着色使用可读的 SpriteRenderer，其他角色可以一起查看冲击火花和闪光。
+
 在预览播放条点击 **Copy for AI**，可复制当前特效 ID、资产路径、未保存的参数和预览设置。把复制的文本贴到 Codex，再说明想怎么改。
 
 ## 在代码中播放特效
@@ -70,7 +74,7 @@ public sealed class FireballExample : MonoBehaviour
 
 同一面板的 **Ground Slam** 在角色脚下播放冲击。使用 `new PixelFxActorBinding(actor, PixelFxLayer.Middle, follow: false)` 可在脚底固定落点，让地裂、尘柱和远弧在角色身后绘制，近弧和碎石在身前绘制。
 
-点击 **Hit Flash** 查看角色的白闪、红闪和描边。用 `new PixelFxActorBinding(actor, PixelFxLayer.Upper, chestAnchor)` 绑定受击者，可选的 `chestAnchor` 定位冲击线。轮廓贴合角色当前的精灵与尺寸，精灵纹理需启用 **Read/Write**。无可用遮罩时仍播放冲击火花和闪光。Effect Library 使用内置测试角色预览。
+点击 **Hit Flash** 查看角色的白闪、红闪和描边。用 `new PixelFxActorBinding(actor, PixelFxLayer.Upper, chestAnchor)` 绑定受击者，可选的 `chestAnchor` 定位冲击线。轮廓贴合角色当前的精灵与尺寸，精灵纹理需启用 **Read/Write**。无可用遮罩时仍播放冲击火花和闪光。Effect Library 的 **Actor** 槽为空时，使用内置测试角色预览。
 
 通过 `PixelFxActorBinding` 绑定一个角色的 `SpriteRenderer`。单段效果使用 `PixelFxContext.Binding`，施法使用 `CastBinding`，每次命中使用各自的 `PixelFxHit.Binding`。`Lower` 默认锚定脚底并在角色后方，`Middle` 默认锚定身体中心并使用效果提供的前后两道绘制，`Upper` 默认锚定头顶并在角色前方。锚点可通过 `Transform` 覆盖，例如把前景爆炸放在身体中心。位置默认跟随角色，设置 `follow: false` 可使用播放开始时的位置。详见[制作规范](docs/authoring.md#actor-relative-effect-layers)。
 

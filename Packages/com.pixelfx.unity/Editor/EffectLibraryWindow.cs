@@ -34,10 +34,14 @@ namespace PixelFx.Editor
         [SerializeField] private PixelFxQuality quality;
         [SerializeField] private float targetDistance = 156.4f / 32;
         [SerializeField] private bool splash = true;
+        [SerializeField] private GameObject previewActor;
+        [SerializeField] private bool actorIsTarget;
+        [SerializeField] private PreviewCamera previewCamera = new PreviewCamera();
         private readonly Dictionary<string, Texture2D> thumbnails = new Dictionary<string, Texture2D>();
         private readonly List<PixelFxVariant> variants = new List<PixelFxVariant>();
         private PixelFxSettings draft;
-        private Preview preview;
+        private EffectPreviewScene preview;
+        private GameObject loadedActor;
         private Vector2 gridScroll, settingsScroll;
         private float time;
         private bool playing;
@@ -63,6 +67,7 @@ namespace PixelFx.Editor
             Undo.undoRedoPerformed -= Reload;
             preview?.Dispose();
             preview = null;
+            loadedActor = null;
             ClearThumbnails();
         }
 
@@ -115,8 +120,13 @@ namespace PixelFx.Editor
 
         private void Rebuild()
         {
-            preview?.Dispose();
-            preview = new Preview(selectedId, draft, targetDistance, splash, quality);
+            preview ??= new EffectPreviewScene();
+            if (loadedActor != previewActor)
+            {
+                preview.SetActor(previewActor);
+                loadedActor = previewActor;
+            }
+            preview.SetEffect(selectedId, draft, targetDistance, splash, quality, actorIsTarget);
             time = Mathf.Clamp(time, 0, preview.Duration);
             Repaint();
         }
@@ -210,8 +220,10 @@ namespace PixelFx.Editor
 
         private void DrawPreview()
         {
+            DrawPreviewControls();
             Rect rect = GUILayoutUtility.GetRect(300, Mathf.Clamp(position.height * 0.42f, 170, 340), GUILayout.ExpandWidth(true));
-            if (Event.current.type == EventType.Repaint) preview.Draw(rect, time);
+            HandlePreviewInput(rect);
+            if (Event.current.type == EventType.Repaint) preview.Draw(rect, time, previewCamera);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 if (GUILayout.Button(new GUIContent(playing ? "Ⅱ" : "▶", "Play / Pause"), EditorStyles.toolbarButton, GUILayout.Width(32)))
@@ -234,6 +246,76 @@ namespace PixelFx.Editor
             EditorGUI.BeginChangeCheck();
             float next = EditorGUILayout.Slider(time, 0, preview.Duration);
             if (EditorGUI.EndChangeCheck()) { playing = false; time = next; }
+        }
+
+        private void DrawPreviewControls()
+        {
+            using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
+            {
+                GUILayout.Label("Actor", EditorStyles.miniLabel, GUILayout.Width(33));
+                var actor = (GameObject)EditorGUILayout.ObjectField(previewActor, typeof(GameObject), true);
+                if (actor != previewActor)
+                {
+                    previewActor = actor;
+                    previewCamera.Frame();
+                    Rebuild();
+                }
+                if (previewActor != null && selectedId == PixelFxLibrary.FireballThrow)
+                {
+                    int role = EditorGUILayout.Popup(actorIsTarget ? 1 : 0, ActorRoles, EditorStyles.toolbarPopup, GUILayout.Width(62));
+                    if ((role == 1) != actorIsTarget)
+                    {
+                        actorIsTarget = role == 1;
+                        Rebuild();
+                    }
+                }
+                previewCamera.Perspective = GUILayout.Toggle(previewCamera.Perspective,
+                    new GUIContent(previewCamera.Perspective ? "Persp" : "Ortho", "Switch between perspective and orthographic projection"),
+                    EditorStyles.toolbarButton, GUILayout.Width(46));
+                if (GUILayout.Button(new GUIContent("Front", "Reset camera rotation"), EditorStyles.toolbarButton, GUILayout.Width(42)))
+                    previewCamera.Front();
+                if (GUILayout.Button(new GUIContent("Frame", "Center and fit the actor and effect"), EditorStyles.toolbarButton, GUILayout.Width(48)))
+                    previewCamera.Frame();
+            }
+            if (previewActor != null && !preview.HasActorRenderer)
+                EditorGUILayout.HelpBox("The selected object needs an active sprite or mesh renderer.", MessageType.Info);
+        }
+
+        private static readonly string[] ActorRoles = { "Caster", "Target" };
+
+        private void HandlePreviewInput(Rect rect)
+        {
+            int control = GUIUtility.GetControlID(FocusType.Passive, rect);
+            var input = Event.current;
+            bool inside = rect.Contains(input.mousePosition);
+            switch (input.GetTypeForControl(control))
+            {
+                case EventType.MouseDown when inside && input.button <= 2:
+                    GUIUtility.hotControl = control;
+                    input.Use();
+                    break;
+                case EventType.MouseDrag when GUIUtility.hotControl == control:
+                    if (input.button == 1 || (input.button == 0 && input.alt))
+                        previewCamera.Orbit(input.delta);
+                    else previewCamera.Pan(input.delta, rect.height);
+                    input.Use();
+                    Repaint();
+                    break;
+                case EventType.MouseUp when GUIUtility.hotControl == control:
+                    GUIUtility.hotControl = 0;
+                    input.Use();
+                    break;
+                case EventType.ScrollWheel when inside:
+                    previewCamera.Zoom(input.delta.y, (input.mousePosition - rect.center) / rect.height);
+                    input.Use();
+                    Repaint();
+                    break;
+                case EventType.KeyDown when inside && input.keyCode == KeyCode.F && !EditorGUIUtility.editingTextField:
+                    previewCamera.Frame();
+                    input.Use();
+                    Repaint();
+                    break;
+            }
         }
 
         private void CopyForAi()

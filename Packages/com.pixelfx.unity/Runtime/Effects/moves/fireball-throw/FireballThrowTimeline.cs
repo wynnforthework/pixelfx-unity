@@ -44,7 +44,7 @@ namespace PixelFx
             {
                 stage = PixelFxStage.Cast;
                 position = castBinding.Follow ? castBinding.PositionOr(castOrigin) : castOrigin;
-                if (castBinding.Actor != null && castBinding.Layer == PixelFxLayer.Middle) rotation = 0;
+                if (castBinding.SortingRenderer != null && castBinding.Layer == PixelFxLayer.Middle) rotation = 0;
                 return index == 0;
             }
             localTime -= CastTime;

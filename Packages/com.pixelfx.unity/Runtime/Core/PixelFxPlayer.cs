@@ -67,20 +67,23 @@ namespace PixelFx
             finally { stopping = false; }
         }
 
-        private sealed class Playback : IDisposable
+        internal sealed class Playback : IDisposable
         {
             internal readonly PixelFxPlayback Handle;
             internal float Time;
             private readonly PixelFxTimeline timeline;
             private readonly (SpriteRenderer Renderer, PixelFxSurface Surface)[] primary, rear;
             private readonly Transform parent;
+            private readonly Transform sortedParent;
             private readonly int layerId, order;
 
-            internal Playback(PixelFxTimeline timeline, PixelFxPlayback handle, Transform parent, string layer, int order)
+            internal Playback(PixelFxTimeline timeline, PixelFxPlayback handle, Transform parent, string layer, int order,
+                Transform sortedParent = null)
             {
                 this.timeline = timeline;
                 Handle = handle;
                 this.parent = parent;
+                this.sortedParent = sortedParent;
                 layerId = SortingLayer.NameToID(layer);
                 this.order = order;
                 primary = new (SpriteRenderer, PixelFxSurface)[timeline.SurfaceCount];
@@ -94,6 +97,11 @@ namespace PixelFx
             private (SpriteRenderer, PixelFxSurface) CreateSurface()
             {
                 var obj = new GameObject("PixelFX " + timeline.Id);
+                if (sortedParent != null)
+                {
+                    obj.hideFlags = HideFlags.HideAndDontSave;
+                    UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(obj, sortedParent.gameObject.scene);
+                }
                 obj.transform.SetParent(parent, true);
                 obj.transform.localScale = Vector3.one * timeline.Settings.scale;
                 var renderer = obj.AddComponent<SpriteRenderer>();
@@ -111,14 +119,15 @@ namespace PixelFx
                         out Vector3 point, out float angle, out float strength);
                     renderer.enabled = visible;
                     var binding = visible ? timeline.BindingFor(stage, i) : default;
-                    bool split = binding.Actor != null && binding.Layer == PixelFxLayer.Middle
+                    var sortingRenderer = binding.SortingRenderer;
+                    bool split = sortingRenderer != null && binding.Layer == PixelFxLayer.Middle
                         && timeline.Definition.LayeredStage == stage;
                     if (!split && i < rear.Length && rear[i].Renderer != null) rear[i].Renderer.enabled = false;
                     if (!visible) continue;
 
                     var rotation = Quaternion.Euler(0, 0, angle);
                     bool actorOverlay = timeline.ActorMask != null;
-                    SetPlacement(renderer, binding.Actor, !actorOverlay && binding.Layer == PixelFxLayer.Lower, point, rotation);
+                    SetPlacement(renderer, sortingRenderer, !actorOverlay && binding.Layer == PixelFxLayer.Lower, point, rotation);
                     if (actorOverlay)
                         HitFlashEffect.PlaceOverlay(renderer, binding.Actor, timeline.Settings.scale);
                     surface.Draw(stage, localTime, strength, split ? PixelFxRenderPass.Front : PixelFxRenderPass.Combined);
@@ -127,12 +136,12 @@ namespace PixelFx
                     if (rear[i].Renderer == null) rear[i] = CreateSurface();
                     var (backRenderer, backSurface) = rear[i];
                     backRenderer.enabled = true;
-                    SetPlacement(backRenderer, binding.Actor, true, point, rotation);
+                    SetPlacement(backRenderer, sortingRenderer, true, point, rotation);
                     backSurface.Draw(stage, localTime, strength, PixelFxRenderPass.Back);
                 }
             }
 
-            private void SetPlacement(SpriteRenderer renderer, SpriteRenderer actor, bool behind, Vector3 point, Quaternion rotation)
+            private void SetPlacement(SpriteRenderer renderer, Renderer actor, bool behind, Vector3 point, Quaternion rotation)
             {
                 if (actor == null)
                 {
@@ -144,10 +153,16 @@ namespace PixelFx
                 {
                     var group = PixelFxActorBinding.SortingGroupFor(actor.transform);
                     // Sort outside the actor's group, even if the player is on the actor itself.
-                    if (renderer.transform.parent != null) renderer.transform.SetParent(null, false);
+                    if (renderer.transform.parent != sortedParent) renderer.transform.SetParent(sortedParent, false);
                     renderer.sortingLayerID = group != null ? group.sortingLayerID : actor.sortingLayerID;
                     int actorOrder = group != null ? group.sortingOrder : actor.sortingOrder;
                     renderer.sortingOrder = Mathf.Clamp(actorOrder + (behind ? -1 : 1), short.MinValue, short.MaxValue);
+                    if (sortedParent != null && !(actor is SpriteRenderer))
+                    {
+                        var bounds = actor.bounds;
+                        if (bounds.size.z > 0.001f)
+                            point.z = behind ? bounds.max.z + 0.01f : bounds.min.z - 0.01f;
+                    }
                 }
                 renderer.transform.SetPositionAndRotation(point, rotation);
             }
