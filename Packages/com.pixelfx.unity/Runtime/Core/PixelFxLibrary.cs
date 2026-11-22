@@ -54,9 +54,17 @@ namespace PixelFx
         public const string BluntHit = "impacts/blunt-hit";
         public const string CriticalHit = "impacts/crit-hit";
         public const string GroundSlam = "impacts/ground-slam";
+        public const string SpellCharge = "arcane/spell-charge";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(SpellCharge, "Spell Charge", "Arcane", 5, 16f / 30, SpellChargeEffect.Duration,
+                (SpellChargeEffect.Width, SpellChargeEffect.Height, SpellChargeEffect.OriginX, SpellChargeEffect.OriginY),
+                SpellChargeEffect.CreateRenderer,
+                0x140a26, 0x2b1252, 0x481c88, 0x6b2cc0, 0x9a48ec, 0xc684ff, 0xecc8ff, 0xffffff)
+            {
+                DefaultActorAnchor = PixelFxLayer.Lower,
+            },
             new PixelFxDefinition(HeavyCleave, "Heavy Cleave", "Melee", 5, 0.37f, (float)HeavyCleaveEffect.Duration,
                 (HeavyCleaveEffect.Width, HeavyCleaveEffect.Height, HeavyCleaveEffect.OriginX, HeavyCleaveEffect.OriginY),
                 HeavyCleaveEffect.CreateRenderer,

@@ -20,6 +20,12 @@ namespace PixelFx
             }
         }
 
+        internal PixelFxRandom(int seed, int index, int stream)
+        {
+            state = Hash(Hash(Hash(0x9e3779b9, seed), index), stream);
+            if (state == 0) state = 1;
+        }
+
         private static uint Hash(uint h, int value)
         {
             unchecked
