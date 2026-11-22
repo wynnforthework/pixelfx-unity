@@ -49,6 +49,7 @@ namespace PixelFx
         public const string FireballThrow = "moves/fireball-throw";
         public const string Fireball = "fire/fireball";
         public const string FireRing = "fire/fire-ring";
+        public const string DivineShield = "holy/divine-shield";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -62,6 +63,15 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(DivineShield, "Divine Shield", "Holy", 8, 18f / 30, DivineShieldEffect.Duration,
+                (DivineShieldEffect.Width, DivineShieldEffect.Height, DivineShieldEffect.OriginX, DivineShieldEffect.OriginY),
+                DivineShieldEffect.CreateRenderer,
+                0x3b1d2a, 0x7a3a2c, 0xc4652e, 0xf0a040, 0xffd25e, 0xfff0a0, 0xfffbe0, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = DivineShieldEffect.CreateLayerRenderer,
+            },
             new PixelFxDefinition(FireRing, "Fire Ring", "Fire", 6, 20f / 30, FireRingEffect.Duration,
                 (FireRingEffect.Width, FireRingEffect.Height, FireRingEffect.OriginX, FireRingEffect.OriginY),
                 FireRingEffect.CreateRenderer,

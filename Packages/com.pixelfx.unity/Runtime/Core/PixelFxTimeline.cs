@@ -15,6 +15,7 @@ namespace PixelFx
         internal readonly bool PreviewActor;
         internal readonly int HitSide;
         internal readonly PixelFxActorMask ActorMask;
+        internal Matrix4x4 ActorToSurface { get; set; }
         internal readonly HitFlashPart FlashPart;
         private readonly Vector3 anchor;
         private readonly PixelFxActorBinding binding, castBinding;
@@ -50,8 +51,9 @@ namespace PixelFx
             binding = context.Binding;
             PreviewActor = previewActor;
             FlashPart = hitFlashPart;
-            if (id == PixelFxLibrary.HitFlash && binding.Actor != null && Quality != PixelFxQuality.Off
-                && hitFlashPart != HitFlashPart.Accents)
+            if (binding.Actor != null && Quality != PixelFxQuality.Off
+                && (id == PixelFxLibrary.DivineShield
+                    || (id == PixelFxLibrary.HitFlash && hitFlashPart != HitFlashPart.Accents)))
                 ActorMask = new PixelFxActorMask();
             castBinding = context.CastBinding;
             anchor = binding.PositionOr(context.Position, definition.DefaultActorAnchor);

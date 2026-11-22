@@ -124,12 +124,34 @@ namespace PixelFx
                 (Mask: this, Grid: grid, Ink: ink, Opacity: opacity), static (x, y, s) =>
                 {
                     var (column, row) = CellAt(x, y, s.Grid);
-                    if (s.Mask.SourcePixel(column, row).a != 0) return default;
-                    bool adjacent = s.Mask.SourcePixel(column - 1, row).a != 0 || s.Mask.SourcePixel(column + 1, row).a != 0
-                        || s.Mask.SourcePixel(column, row - 1).a != 0 || s.Mask.SourcePixel(column, row + 1).a != 0;
-                    return adjacent ? (s.Ink, s.Opacity) : default;
+                    return s.Mask.IsOutline(column, row) ? (s.Ink, s.Opacity) : default;
                 });
         }
+
+        internal void LightOutline(PixelPainter painter, Matrix4x4 actorToSurface, uint ink, double strength,
+            int left, int top, int right, int bottom)
+        {
+            if (pixels == null) return;
+            double determinant = (double)actorToSurface.m00 * actorToSurface.m11 - (double)actorToSurface.m01 * actorToSurface.m10;
+            if (Math.Abs(determinant) < 1e-8) return;
+            var grid = GridAt(0, 0, 1);
+            // Invert the projected sprite plane on the effect's 32 PPU raster.
+            for (int y = top; y < bottom; y++)
+            for (int x = left; x < right; x++)
+            {
+                double dx = (x + 0.5) / 32 - actorToSurface.m03;
+                double dy = -(y + 0.5) / 32 - actorToSurface.m13;
+                double sx = (dx * actorToSurface.m11 - dy * actorToSurface.m01) / determinant;
+                double sy = (dy * actorToSurface.m00 - dx * actorToSurface.m10) / determinant;
+                var (column, row) = CellAt(sx, -sy, grid);
+                if (IsOutline(column, row)) painter.Light(x, y, ink, strength);
+            }
+        }
+
+        private bool IsOutline(int column, int row) =>
+            SourcePixel(column, row).a == 0
+            && (SourcePixel(column - 1, row).a != 0 || SourcePixel(column + 1, row).a != 0
+                || SourcePixel(column, row - 1).a != 0 || SourcePixel(column, row + 1).a != 0);
 
         private (double X, double Y, double Step) GridAt(double pivotX, double pivotY, double pixelsPerUnit)
         {

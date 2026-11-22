@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Fireball, Fireball Throw, Spell Charge, Small Explosion, Magic Circle Cast, Fire Ring, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Fireball, Fireball Throw, Spell Charge, Small Explosion, Magic Circle Cast, Fire Ring, Divine Shield, and the original Shuriken.
 
 The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
@@ -98,7 +98,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, Fireball, Small Explosion, Fireball Throw, Magic Circle Cast, and Fire Ring passed the upstream visual comparison (**13 / 244**). Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Hit Flash animation](docs/media/hit-flash.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif) · [Ground Slam animation](docs/media/ground-slam.gif) · [Spell Charge animation](docs/media/spell-charge.gif) · [Fireball animation](docs/media/fireball.gif) · [Small Explosion animation](docs/media/small-explosion.gif) · [Magic Circle Cast animation](docs/media/magic-circle-cast.gif) · [Fire Ring animation](docs/media/fire-ring.gif)
+The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Hit Flash, Parry, Blunt Hit, Critical Hit, Ground Slam, Spell Charge, Fireball, Small Explosion, Fireball Throw, Magic Circle Cast, Fire Ring, and Divine Shield passed the upstream visual comparison (**14 / 244**). Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Hit Flash animation](docs/media/hit-flash.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif) · [Ground Slam animation](docs/media/ground-slam.gif) · [Spell Charge animation](docs/media/spell-charge.gif) · [Fireball animation](docs/media/fireball.gif) · [Small Explosion animation](docs/media/small-explosion.gif) · [Magic Circle Cast animation](docs/media/magic-circle-cast.gif) · [Fire Ring animation](docs/media/fire-ring.gif) · [Divine Shield animation](docs/media/divine-shield.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken

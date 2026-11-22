@@ -21,6 +21,7 @@ namespace PixelFx
         private readonly PixelFxTimeline timeline;
         private int lastActorVersion;
         private Vector3 lastChest;
+        private Matrix4x4 lastActorToSurface;
         private int lastFrame = -1;
         private float lastStrength;
         private PixelFxStage lastStage;
@@ -59,16 +60,19 @@ namespace PixelFx
             int frame = Mathf.FloorToInt(Mathf.Max(0, time) * 30 + 0.0001f);
             int actorVersion = 0;
             Vector3 chest = default;
-            if (timeline.ActorMask != null)
+            Matrix4x4 actorToSurface = default;
+            if (timeline.ActorMask != null && pass != PixelFxRenderPass.Back)
             {
                 var binding = timeline.BindingFor(stage, 0);
                 timeline.ActorMask.Update(binding.Actor);
                 actorVersion = timeline.ActorMask.Version;
+                actorToSurface = timeline.ActorToSurface;
                 if (binding.Actor != null && binding.Anchor != null)
                     chest = binding.Actor.transform.InverseTransformPoint(binding.Anchor.position);
             }
             if (stage == lastStage && frame == lastFrame && pass == lastPass && actorVersion == lastActorVersion
-                && chest == lastChest && strength == lastStrength) return false;
+                && chest == lastChest && strength == lastStrength
+                && actorToSurface.Equals(lastActorToSurface)) return false;
             using (Raster.Auto())
                 renderFrame(pixels, stage, frame / 30.0, strength, pass);
             lastStage = stage;
@@ -77,6 +81,7 @@ namespace PixelFx
             lastStrength = strength;
             lastActorVersion = actorVersion;
             lastChest = chest;
+            lastActorToSurface = actorToSurface;
             return true;
         }
 
