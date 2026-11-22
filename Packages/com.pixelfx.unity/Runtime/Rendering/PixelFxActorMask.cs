@@ -175,10 +175,10 @@ namespace PixelFx
                 return CellAt(sx, -sy, grid);
             }
 
-            internal Color32 Sample(double x, double y)
+            internal Color32 Sample(double x, double y, int rowLimit = int.MaxValue)
             {
                 var (column, row) = Cell(x, y);
-                return mask.SourcePixel(column, row);
+                return row < rowLimit ? mask.SourcePixel(column, row) : default;
             }
         }
 

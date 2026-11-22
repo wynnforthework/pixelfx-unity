@@ -23,6 +23,7 @@ namespace PixelFx
         private readonly FireballThrowTimeline fireball;
 
         internal string Id => Definition.Id;
+        internal bool KeepUpright => Definition.KeepUpright || Id == PixelFxLibrary.HitFlash;
         internal PixelFxHit[] Hits => fireball?.Hits ?? Array.Empty<PixelFxHit>();
         internal float CastTime => fireball?.CastTime ?? 0;
         internal float FlightTime => fireball?.FlightTime ?? 0;
@@ -59,7 +60,7 @@ namespace PixelFx
             anchor = binding.PositionOr(context.Position, definition.DefaultActorAnchor);
             Vector2 direction = context.Direction.sqrMagnitude > 0 ? context.Direction.normalized : Vector2.right;
             HitSide = direction.x < 0 ? -1 : 1;
-            angle = id == PixelFxLibrary.HitFlash ? 0 : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+            angle = KeepUpright ? 0 : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             if (id == PixelFxLibrary.FireballThrow)
             {
                 fireball = new FireballThrowTimeline(context, Settings, direction, angle);

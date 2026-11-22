@@ -44,6 +44,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Hit Flash")) PlayHitFlash();
             if (GUILayout.Button("Divine Shield")) PlayActorBuff(PixelFxLibrary.DivineShield);
             if (GUILayout.Button("Blessing")) PlayActorBuff(PixelFxLibrary.Blessing);
+            if (GUILayout.Button("Halo")) PlayActorBuff(PixelFxLibrary.Halo, PixelFxLayer.Upper);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
@@ -99,7 +100,7 @@ namespace PixelFx.Samples
             });
         }
 
-        private void PlayActorBuff(string effect)
+        private void PlayActorBuff(string effect, PixelFxLayer layer = PixelFxLayer.Middle)
         {
             current?.Stop();
             EnsureActors();
@@ -108,7 +109,7 @@ namespace PixelFx.Samples
             caster.transform.position = transform.position + new Vector3(3.3f, 1, 0);
             current = player.Play(effect, context: new PixelFxContext
             {
-                Binding = new PixelFxActorBinding(caster, PixelFxLayer.Middle)
+                Binding = new PixelFxActorBinding(caster, layer)
             });
             current.Completed += _ => HideActors();
         }

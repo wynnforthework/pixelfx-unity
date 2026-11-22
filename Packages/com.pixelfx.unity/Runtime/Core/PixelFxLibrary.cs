@@ -17,6 +17,7 @@ namespace PixelFx
         internal PixelFxStage? LayeredStage { get; set; }
         internal PixelFxLayer? DefaultActorAnchor { get; set; }
         internal bool UsesProjectedActorMask { get; set; }
+        internal bool KeepUpright { get; set; }
         private readonly int seed;
         private readonly uint[] palette;
 
@@ -52,6 +53,7 @@ namespace PixelFx
         public const string FireRing = "fire/fire-ring";
         public const string DivineShield = "holy/divine-shield";
         public const string Blessing = "holy/blessing";
+        public const string Halo = "holy/halo";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -65,6 +67,15 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(Halo, "Halo", "Holy", 5, 8f / 30, HaloEffect.Duration,
+                (HaloEffect.Width, HaloEffect.Height, HaloEffect.OriginX, HaloEffect.OriginY),
+                HaloEffect.CreateRenderer,
+                0x3b1d2a, 0x7a3a2c, 0xc4652e, 0xf0a040, 0xffd25e, 0xfff0a0, 0xfffbe0, 0xffffff)
+            {
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                UsesProjectedActorMask = true,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(Blessing, "Blessing", "Holy", 7, 18f / 30, BlessingEffect.Duration,
                 (BlessingEffect.Width, BlessingEffect.Height, BlessingEffect.OriginX, BlessingEffect.OriginY),
                 BlessingEffect.CreateRenderer,

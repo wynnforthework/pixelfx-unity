@@ -110,7 +110,7 @@ namespace PixelFx
                 if (placement is PixelFxPlacement saved && primary.Length > 0)
                 {
                     this.placement = saved;
-                    facing = direction.sqrMagnitude > 0 && timeline.Id != PixelFxLibrary.HitFlash
+                    facing = direction.sqrMagnitude > 0 && !timeline.KeepUpright
                         ? Quaternion.Euler(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg)
                         : Quaternion.identity;
                     var space = new GameObject("PixelFX Placement " + timeline.Id);
