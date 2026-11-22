@@ -64,6 +64,12 @@ public sealed class FireballExample : MonoBehaviour
 
 飞行速度以每特效秒移动的 Unity 单位数计。播放开始时会复制参数和目标位置。省略命中列表时，会在落点播放一次全强度爆炸。传入空列表可跳过爆炸。`PixelFxPlayer.DefaultQuality` 设置全局默认质量，`PixelFxContext.Quality` 可覆盖单次播放的质量。**Full** 绘制所有图层，**Simplified** 省略装饰粒子，**Off** 保留阶段时序与播放完成行为，同时跳过渲染资源分配。调用播放句柄的 `Stop()` 可中止播放。
 
+### 角色分层播放
+
+在 **Tools > PixelFX > Open Demo** 中进入 Play Mode，点击 **Layered Fireball**。施法环的远弧被 A 挡住，近弧盖住 A，爆炸跟随 B 的命中点并显示在 B 前面。
+
+通过 `PixelFxActorBinding` 绑定一个角色的 `SpriteRenderer`。单段效果使用 `PixelFxContext.Binding`，施法使用 `CastBinding`，每次命中使用各自的 `PixelFxHit.Binding`。`Lower` 默认锚定脚底并在角色后方，`Middle` 默认锚定身体中心并使用效果提供的前后两道绘制，`Upper` 默认锚定头顶并在角色前方。锚点可通过 `Transform` 覆盖，例如把前景爆炸放在身体中心。位置默认跟随角色，设置 `follow: false` 可使用播放开始时的位置。详见[制作规范](docs/authoring.md#actor-relative-effect-layers)。
+
 ## 移植进度
 
 移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **5 / 244**，包括 Heavy Cleave、Hit Spark、Parry、Blunt Hit 和 Critical Hit。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif)
@@ -74,7 +80,8 @@ public sealed class FireballExample : MonoBehaviour
 - [ ] 对照上游画面，完善 Fireball Throw 各阶段的视觉表现
 - [ ] 移植近战和命中特效，再移植投射物和组合动作
 - [ ] 移植元素和状态特效，再移植环境、生物和 UI 特效
-- [ ] 添加可复用的角色遮罩、动作时序与精灵前后分层
+- [x] 支持相对角色的下、中、上三层播放
+- [ ] 添加可复用的角色遮罩和动作时序
 
 ## 性能数据
 

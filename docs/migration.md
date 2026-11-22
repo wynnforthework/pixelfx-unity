@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/ground-slam` | Next | Preserve the upstream back and front passes. Validate shared layer support, then port the cracks, shock fronts, dust and debris. Compare seed 5 at 30 FPS. |
+| `impacts/ground-slam` | Next | Use the verified shared actor-relative layer playback. Preserve the upstream back and front passes while porting the cracks, shock fronts, dust and debris. Compare seed 5 at 30 FPS and check actor overlap. |
 | `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
@@ -35,7 +35,9 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**5 / 244 verified** in Unity as of 2026-11-22. Ground Slam is next. Its layered playback depends on shared back/front ordering, and the floor cracks, shock fronts and dust column still need a C# port.
+**5 / 244 verified** in Unity as of 2026-11-22. Ground Slam is next.
+
+Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open. Fireball Throw still needs upstream visual comparison before it counts as a verified port.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |

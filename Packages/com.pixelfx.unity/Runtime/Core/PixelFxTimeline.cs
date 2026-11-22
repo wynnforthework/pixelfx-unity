@@ -12,6 +12,7 @@ namespace PixelFx
         internal readonly float Duration;
         internal readonly PixelFxDefinition Definition;
         private readonly Vector3 anchor;
+        private readonly PixelFxActorBinding binding, castBinding;
         private readonly float angle;
         private readonly FireballThrowTimeline fireball;
 
@@ -39,7 +40,9 @@ namespace PixelFx
             Settings.trailRate = Mathf.Clamp(Settings.trailRate, 0, 180);
             context ??= new PixelFxContext();
             Quality = context.Quality ?? PixelFxPlayer.DefaultQuality;
-            anchor = context.Position;
+            binding = context.Binding;
+            castBinding = context.CastBinding;
+            anchor = binding.PositionOr(context.Position);
             Vector2 direction = context.Direction.sqrMagnitude > 0 ? context.Direction.normalized : Vector2.right;
             angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             if (id == PixelFxLibrary.FireballThrow)
@@ -60,12 +63,23 @@ namespace PixelFx
             out Vector3 position, out float angle, out float strength)
         {
             localTime = seconds * Settings.playbackSpeed;
-            position = anchor;
+            position = binding.Follow ? binding.PositionOr(anchor) : anchor;
             angle = this.angle;
             strength = 1;
             stage = PixelFxStage.Single;
             if (index >= SurfaceCount || seconds < 0 || seconds >= Duration) return false;
             return fireball == null || fireball.Sample(index, out stage, ref localTime, ref position, out angle, out strength);
+        }
+
+        internal PixelFxActorBinding BindingFor(PixelFxStage stage, int index)
+        {
+            switch (stage)
+            {
+                case PixelFxStage.Single: return binding;
+                case PixelFxStage.Cast: return castBinding;
+                case PixelFxStage.Impact: return Hits[index].Binding;
+                default: return default;
+            }
         }
 
         internal static float Limit(float value, float min, float max, float fallback) =>

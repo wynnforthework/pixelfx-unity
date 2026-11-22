@@ -21,6 +21,10 @@ For Middle, split the effect using its authored near/far geometry. A ring uses i
 
 For an A-to-B cast, put the cast ring in Middle relative to A and play the projectile along its travel path. Put the explosion in Upper relative to B, at B's hit anchor, and follow B throughout the impact phase.
 
+Bind each stage using `PixelFxActorBinding`. The player sorts one order behind or ahead of the actor's `SpriteRenderer` or enclosing `SortingGroup` on the same sorting layer. Reserve one order on either side of the actor. A stage without authored split passes draws entirely in front when bound to Middle.
+
+For Fireball Throw, an explicit `LaunchPoint` sets the projectile's world-space origin. Otherwise, a following cast binding supplies the origin at release. The flight duration is scheduled from the initial distance, and each hit may follow its own actor after the projectile reaches the snapshotted landing point.
+
 ## Add or migrate a definition
 
 Place each effect under `Packages/com.pixelfx.unity/Runtime/Effects/<effect-id>/`. Preserve the full ID path, such as `melee/heavy-cleave` or `moves/fireball-throw`. Keep the effect renderer, particles, effect-specific stage code, and dedicated helpers in that directory. Split a large effect by responsibility with effect-prefixed filenames. Common playback, variants, and the registry live in `Runtime/Core/`. Reusable rasterization and texture code live in `Runtime/Rendering/`. Preserve Unity `.meta` files when moving existing scripts or assets.

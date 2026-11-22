@@ -1,9 +1,11 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.PackageManager.UI;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
@@ -19,6 +21,7 @@ namespace PixelFx.Editor
             ValidateVariants();
             ValidateStages();
             ValidatePlayback();
+            ValidateActorLayers();
             ImportSample();
             Debug.Log("PixelFX validation passed");
         }
@@ -140,6 +143,120 @@ namespace PixelFx.Editor
                 }
             }
             finally { Object.DestroyImmediate(obj); }
+        }
+
+        private static void ValidateActorLayers()
+        {
+            var casterRoot = new GameObject("Layer validation caster", typeof(SortingGroup), typeof(PixelFxPlayer));
+            var targetObject = new GameObject("Layer validation target", typeof(SpriteRenderer));
+            var secondaryObject = new GameObject("Layer validation secondary target", typeof(SpriteRenderer));
+            var player = casterRoot.GetComponent<PixelFxPlayer>();
+            try
+            {
+                var casterObject = new GameObject("Caster sprite", typeof(SpriteRenderer));
+                casterObject.transform.SetParent(casterRoot.transform, false);
+                var caster = casterObject.GetComponent<SpriteRenderer>();
+                var casterGroup = casterRoot.GetComponent<SortingGroup>();
+                casterGroup.sortingOrder = 10;
+                var target = targetObject.GetComponent<SpriteRenderer>();
+                targetObject.transform.position = Target;
+                target.sortingOrder = 20;
+                var secondary = secondaryObject.GetComponent<SpriteRenderer>();
+                secondaryObject.transform.position = Target + Vector3.up;
+                secondary.sortingOrder = 30;
+
+                var groundPoint = new GameObject("Foot anchor").transform;
+                groundPoint.SetParent(casterObject.transform, false);
+                groundPoint.localPosition = Vector3.down;
+                var handle = player.Play(PixelFxLibrary.HitSpark, context: new PixelFxContext
+                {
+                    Binding = new PixelFxActorBinding(caster, PixelFxLayer.Lower, groundPoint, follow: false)
+                });
+                var ground = LayerRenderers(9).Single();
+                casterRoot.transform.position = Vector3.up;
+                player.Tick(0.06f);
+                Check(ground.transform.position == Vector3.down, "Lower uses the snapshotted foot anchor and sorts outside the group");
+                handle.Stop();
+                casterRoot.transform.position = Vector3.zero;
+
+                var context = new PixelFxContext
+                {
+                    Direction = Vector2.left,
+                    CastBinding = new PixelFxActorBinding(caster, PixelFxLayer.Middle, caster.transform),
+                    LandingPoint = Target,
+                    Hits = new[]
+                    {
+                        new PixelFxHit(Target, 1, new PixelFxActorBinding(target, PixelFxLayer.Upper, target.transform)),
+                        new PixelFxHit(Target + Vector3.up, 0.5f,
+                            new PixelFxActorBinding(secondary, PixelFxLayer.Upper, secondary.transform))
+                    }
+                };
+                foreach (PixelFxQuality quality in Enum.GetValues(typeof(PixelFxQuality)))
+                {
+                    casterRoot.transform.position = Vector3.zero;
+                    context.Quality = quality;
+                    handle = player.Play(PixelFxLibrary.FireballThrow, context: context);
+                    var timeline = new PixelFxTimeline(PixelFxLibrary.FireballThrow, null, context);
+                    casterRoot.transform.position = Vector3.up;
+                    player.Tick(0.4f);
+                    Check(handle.Duration == timeline.Duration, "Actor movement keeps the scheduled duration");
+                    if (quality == PixelFxQuality.Off)
+                    {
+                        Check(!LayerRenderers(9).Any() && !LayerRenderers(11).Any() && casterRoot.transform.childCount == 1,
+                            "Layered Off allocates no sprite surfaces");
+                        player.Tick(handle.Duration);
+                        Check(handle.IsDone && !handle.WasStopped, "Layered Off completes normally");
+                        continue;
+                    }
+
+                    var back = LayerRenderers(9).Single();
+                    var front = LayerRenderers(11).Single();
+                    Check(back.transform.position == Vector3.up && front.transform.position == Vector3.up,
+                        "Both Middle passes follow the caster");
+                    Check(front.transform.rotation == Quaternion.identity && back.transform.rotation == Quaternion.identity,
+                        "Facing left keeps the ring aligned with the view");
+                    Check(AlphaSum(back.sprite.texture) > 0 && AlphaSum(front.sprite.texture) > 0
+                        && !back.sprite.texture.GetRawTextureData().SequenceEqual(front.sprite.texture.GetRawTextureData()),
+                        "Both Middle passes contain distinct visible pixels");
+
+                    var launch = Vector3.up * 2;
+                    casterRoot.transform.position = launch;
+                    player.Tick(timeline.CastTime + timeline.FlightTime * 0.5f - 0.4f);
+                    Check(!back.enabled && Vector3.Distance(front.transform.position, (launch + Target) * 0.5f) < 0.001f,
+                        "Flight leaves the live caster position at release");
+                    casterRoot.transform.position = Vector3.up * 3;
+                    player.Tick(timeline.FlightTime * 0.25f);
+                    Check(Vector3.Distance(front.transform.position, Vector3.Lerp(launch, Target, 0.75f)) < 0.001f,
+                        "Flight no longer follows the caster");
+
+                    targetObject.transform.position = Target + Vector3.down;
+                    player.Tick(timeline.FlightTime * 0.25f + 0.12f);
+                    var impact = LayerRenderers(21).Single();
+                    var secondaryImpact = LayerRenderers(31).Single();
+                    Check(impact.transform.position == targetObject.transform.position
+                        && secondaryImpact.transform.position == secondaryObject.transform.position,
+                        "Each Upper impact follows and sorts in front of its own target");
+                    Check(AlphaSum(impact.sprite.texture) > AlphaSum(secondaryImpact.sprite.texture),
+                        "Layered impacts preserve per-target strength");
+                    targetObject.transform.position = Target + Vector3.down * 2;
+                    player.Tick(0.02f);
+                    Check(impact.transform.position == targetObject.transform.position, "Impact keeps following its target");
+                    handle.Stop();
+                    Check(back == null && front == null && secondaryImpact == null, "Stopping destroys both actor-relative passes");
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(casterRoot);
+                Object.DestroyImmediate(targetObject);
+                Object.DestroyImmediate(secondaryObject);
+            }
+
+            System.Collections.Generic.IEnumerable<SpriteRenderer> LayerRenderers(int order) =>
+                casterRoot.scene.GetRootGameObjects()
+                    .Where(root => root.name.StartsWith("PixelFX ", StringComparison.Ordinal))
+                    .Select(root => root.GetComponent<SpriteRenderer>())
+                    .Where(renderer => renderer != null && renderer.sortingOrder == order);
         }
 
         private static void ImportSample()

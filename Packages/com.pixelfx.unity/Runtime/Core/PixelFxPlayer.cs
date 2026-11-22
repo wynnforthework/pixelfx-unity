@@ -36,7 +36,7 @@ namespace PixelFx
             return handle;
         }
 
-        private void Update() => Tick(Time.deltaTime);
+        private void LateUpdate() => Tick(Time.deltaTime);
 
         internal void Tick(float deltaTime)
         {
@@ -72,50 +72,96 @@ namespace PixelFx
             internal readonly PixelFxPlayback Handle;
             internal float Time;
             private readonly PixelFxTimeline timeline;
-            private readonly PixelFxSurface[] surfaces;
-            private readonly SpriteRenderer[] renderers;
+            private readonly (SpriteRenderer Renderer, PixelFxSurface Surface)[] primary, rear;
+            private readonly Transform parent;
+            private readonly int layerId, order;
 
             internal Playback(PixelFxTimeline timeline, PixelFxPlayback handle, Transform parent, string layer, int order)
             {
                 this.timeline = timeline;
                 Handle = handle;
-                surfaces = new PixelFxSurface[timeline.SurfaceCount];
-                renderers = new SpriteRenderer[timeline.SurfaceCount];
-                for (int i = 0; i < surfaces.Length; i++)
-                {
-                    var obj = new GameObject("PixelFX " + timeline.Id);
-                    obj.transform.SetParent(parent, true);
-                    renderers[i] = obj.AddComponent<SpriteRenderer>();
-                    renderers[i].sortingLayerName = layer;
-                    renderers[i].sortingOrder = order;
-                    surfaces[i] = new PixelFxSurface(timeline, true);
-                    renderers[i].sprite = surfaces[i].Sprite;
-                    obj.transform.localScale = Vector3.one * timeline.Settings.scale;
-                }
+                this.parent = parent;
+                layerId = SortingLayer.NameToID(layer);
+                this.order = order;
+                primary = new (SpriteRenderer, PixelFxSurface)[timeline.SurfaceCount];
+                rear = timeline.Definition.LayeredStage.HasValue && primary.Length > 0
+                    ? new (SpriteRenderer, PixelFxSurface)[primary.Length]
+                    : Array.Empty<(SpriteRenderer, PixelFxSurface)>();
+                for (int i = 0; i < primary.Length; i++)
+                    primary[i] = CreateSurface();
+            }
+
+            private (SpriteRenderer, PixelFxSurface) CreateSurface()
+            {
+                var obj = new GameObject("PixelFX " + timeline.Id);
+                obj.transform.SetParent(parent, true);
+                obj.transform.localScale = Vector3.one * timeline.Settings.scale;
+                var renderer = obj.AddComponent<SpriteRenderer>();
+                var surface = new PixelFxSurface(timeline, true);
+                renderer.sprite = surface.Sprite;
+                return (renderer, surface);
             }
 
             internal void Draw()
             {
-                for (int i = 0; i < surfaces.Length; i++)
+                for (int i = 0; i < primary.Length; i++)
                 {
-                    var renderer = renderers[i];
-                    renderer.enabled = timeline.Sample(Time, i, out var stage, out float localTime,
+                    var (renderer, surface) = primary[i];
+                    bool visible = timeline.Sample(Time, i, out var stage, out float localTime,
                         out Vector3 point, out float angle, out float strength);
-                    if (!renderer.enabled) continue;
-                    renderer.transform.SetPositionAndRotation(point, Quaternion.Euler(0, 0, angle));
-                    surfaces[i].Draw(stage, localTime, strength);
+                    renderer.enabled = visible;
+                    var binding = visible ? timeline.BindingFor(stage, i) : default;
+                    bool split = binding.Actor != null && binding.Layer == PixelFxLayer.Middle
+                        && timeline.Definition.LayeredStage == stage;
+                    if (!split && i < rear.Length && rear[i].Renderer != null) rear[i].Renderer.enabled = false;
+                    if (!visible) continue;
+
+                    var rotation = Quaternion.Euler(0, 0, angle);
+                    SetPlacement(renderer, binding.Actor, binding.Layer == PixelFxLayer.Lower, point, rotation);
+                    surface.Draw(stage, localTime, strength, split ? PixelFxRenderPass.Front : PixelFxRenderPass.Combined);
+                    if (!split) continue;
+
+                    if (rear[i].Renderer == null) rear[i] = CreateSurface();
+                    var (backRenderer, backSurface) = rear[i];
+                    backRenderer.enabled = true;
+                    SetPlacement(backRenderer, binding.Actor, true, point, rotation);
+                    backSurface.Draw(stage, localTime, strength, PixelFxRenderPass.Back);
                 }
+            }
+
+            private void SetPlacement(SpriteRenderer renderer, SpriteRenderer actor, bool behind, Vector3 point, Quaternion rotation)
+            {
+                if (actor == null)
+                {
+                    if (renderer.transform.parent != parent) renderer.transform.SetParent(parent, false);
+                    renderer.sortingLayerID = layerId;
+                    renderer.sortingOrder = order;
+                }
+                else
+                {
+                    var group = PixelFxActorBinding.SortingGroupFor(actor.transform);
+                    // Sort outside the actor's group, even if the player is on the actor itself.
+                    if (renderer.transform.parent != null) renderer.transform.SetParent(null, false);
+                    renderer.sortingLayerID = group != null ? group.sortingLayerID : actor.sortingLayerID;
+                    int actorOrder = group != null ? group.sortingOrder : actor.sortingOrder;
+                    renderer.sortingOrder = Mathf.Clamp(actorOrder + (behind ? -1 : 1), short.MinValue, short.MaxValue);
+                }
+                renderer.transform.SetPositionAndRotation(point, rotation);
             }
 
             public void Dispose()
             {
-                for (int i = 0; i < surfaces.Length; i++)
-                {
-                    renderers[i].enabled = false;
-                    surfaces[i].Dispose();
-                    if (Application.isPlaying) Destroy(renderers[i].gameObject);
-                    else DestroyImmediate(renderers[i].gameObject);
-                }
+                foreach (var slot in primary) Release(slot);
+                foreach (var slot in rear) Release(slot);
+            }
+
+            private static void Release((SpriteRenderer Renderer, PixelFxSurface Surface) slot)
+            {
+                slot.Surface?.Dispose();
+                if (slot.Renderer == null) return;
+                slot.Renderer.enabled = false;
+                if (Application.isPlaying) Destroy(slot.Renderer.gameObject);
+                else DestroyImmediate(slot.Renderer.gameObject);
             }
         }
     }

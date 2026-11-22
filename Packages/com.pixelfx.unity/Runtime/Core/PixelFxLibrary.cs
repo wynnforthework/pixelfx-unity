@@ -13,6 +13,8 @@ namespace PixelFx
         internal float Duration { get; }
         internal (int Width, int Height, int OriginX, int OriginY) Canvas { get; }
         internal Func<PixelFxTimeline, PixelFxFrameRenderer> CreateRenderer { get; }
+        internal Func<PixelFxTimeline, PixelFxLayerRenderer> CreateLayerRenderer { get; set; }
+        internal PixelFxStage? LayeredStage { get; set; }
         private readonly int seed;
         private readonly uint[] palette;
 
@@ -59,7 +61,11 @@ namespace PixelFx
             new PixelFxDefinition(FireballThrow, "Fireball Throw", "Moves", 1, 1.57f, FireballThrowTimeline.ImpactDuration,
                 (FireballThrowEffect.Width, FireballThrowEffect.Height, FireballThrowEffect.OriginX, FireballThrowEffect.OriginY),
                 FireballThrowEffect.CreateRenderer,
-                0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff),
+                0x4a1712, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Cast,
+                CreateLayerRenderer = FireballThrowEffect.CreateLayerRenderer,
+            },
             new PixelFxDefinition(Shuriken, "Shuriken", "Projectile", 17, 0.43f, (float)ShurikenEffect.Duration,
                 (ShurikenEffect.Width, ShurikenEffect.Height, ShurikenEffect.OriginX, ShurikenEffect.OriginY),
                 ShurikenEffect.CreateRenderer,

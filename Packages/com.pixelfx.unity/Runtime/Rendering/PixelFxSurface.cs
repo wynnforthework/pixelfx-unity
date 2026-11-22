@@ -5,6 +5,8 @@ using UnityEngine;
 namespace PixelFx
 {
     internal delegate void PixelFxFrameRenderer(byte[] pixels, PixelFxStage stage, double time, double strength);
+    internal delegate void PixelFxLayerRenderer(byte[] pixels, PixelFxStage stage, double time, double strength, PixelFxRenderPass pass);
+    internal enum PixelFxRenderPass { Combined, Back, Front }
 
     internal sealed class PixelFxSurface : IDisposable
     {
@@ -14,17 +16,24 @@ namespace PixelFx
         internal readonly Texture2D Texture;
         internal readonly Sprite Sprite;
         internal readonly int Width, Height, OriginX, OriginY;
-        private readonly PixelFxFrameRenderer renderFrame;
+        private readonly PixelFxLayerRenderer renderFrame;
         private readonly byte[] pixels;
         private int lastFrame = -1;
         private PixelFxStage lastStage;
+        private PixelFxRenderPass lastPass;
 
         internal PixelFxSurface(PixelFxTimeline timeline, bool needsSprite)
         {
             var definition = timeline.Definition;
             (Width, Height, OriginX, OriginY) = definition.Canvas;
             pixels = new byte[Width * Height * 4];
-            renderFrame = definition.CreateRenderer(timeline);
+            if (definition.CreateLayerRenderer != null)
+                renderFrame = definition.CreateLayerRenderer(timeline);
+            else
+            {
+                var combined = definition.CreateRenderer(timeline);
+                renderFrame = (buffer, stage, time, strength, pass) => combined(buffer, stage, time, strength);
+            }
             Texture = new Texture2D(Width, Height, TextureFormat.RGBA32, false)
             {
                 name = "PixelFX " + timeline.Id,
@@ -40,14 +49,15 @@ namespace PixelFx
             }
         }
 
-        internal bool Render(PixelFxStage stage, float time, float strength)
+        internal bool Render(PixelFxStage stage, float time, float strength, PixelFxRenderPass pass = PixelFxRenderPass.Combined)
         {
             int frame = Mathf.FloorToInt(Mathf.Max(0, time) * 30 + 0.0001f);
-            if (stage == lastStage && frame == lastFrame) return false;
+            if (stage == lastStage && frame == lastFrame && pass == lastPass) return false;
             using (Raster.Auto())
-                renderFrame(pixels, stage, frame / 30.0, strength);
+                renderFrame(pixels, stage, frame / 30.0, strength, pass);
             lastStage = stage;
             lastFrame = frame;
+            lastPass = pass;
             return true;
         }
 
@@ -60,9 +70,9 @@ namespace PixelFx
             }
         }
 
-        internal void Draw(PixelFxStage stage, float time, float strength)
+        internal void Draw(PixelFxStage stage, float time, float strength, PixelFxRenderPass pass = PixelFxRenderPass.Combined)
         {
-            if (Render(stage, time, strength)) Submit();
+            if (Render(stage, time, strength, pass)) Submit();
         }
 
         public void Dispose()

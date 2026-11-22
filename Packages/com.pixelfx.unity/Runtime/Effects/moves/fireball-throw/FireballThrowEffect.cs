@@ -20,32 +20,39 @@ namespace PixelFx
 
         internal static PixelFxFrameRenderer CreateRenderer(PixelFxTimeline timeline)
         {
-            var effect = new FireballThrowEffect(timeline.Settings);
-            bool full = timeline.Quality == PixelFxQuality.Full;
-            return (pixels, stage, time, strength) => effect.Render(pixels, stage, time, timeline.CastTime, strength, full);
+            var renderer = CreateLayerRenderer(timeline);
+            return (pixels, stage, time, strength) => renderer(pixels, stage, time, strength, PixelFxRenderPass.Combined);
         }
 
-        private void Render(byte[] pixels, PixelFxStage stage, double t, double castDuration, double strength, bool full)
+        internal static PixelFxLayerRenderer CreateLayerRenderer(PixelFxTimeline timeline)
+        {
+            var effect = new FireballThrowEffect(timeline.Settings);
+            bool full = timeline.Quality == PixelFxQuality.Full;
+            return (pixels, stage, time, strength, pass) => effect.Render(pixels, stage, time, timeline.CastTime, strength, full, pass);
+        }
+
+        private void Render(byte[] pixels, PixelFxStage stage, double t, double castDuration, double strength, bool full,
+            PixelFxRenderPass pass)
         {
             p.Clear();
             p.LightStrength = settings.glow;
             switch (stage)
             {
-                case PixelFxStage.Cast: Cast(t, castDuration, full); break;
+                case PixelFxStage.Cast: Cast(t, castDuration, full, pass); break;
                 case PixelFxStage.Flight: Flight(t, full); break;
                 case PixelFxStage.Impact: Impact(t, strength, full); break;
             }
             p.Composite(pixels, true, true);
         }
 
-        private void Cast(double t, double duration, bool full)
+        private void Cast(double t, double duration, bool full, PixelFxRenderPass pass)
         {
             double progress = Clamp(t / Max(duration, 0.001));
             double radius = 2 + 5 * progress + Sin(16 * t) * progress;
             for (int i = 0; i < 3; i++)
             {
                 double q = (progress * 3 + i / 3.0) % 1;
-                Ring(0, 0, radius + 21 * (1 - q * q), 0.6 + 0.18 * i, c[5], Sin(q * PI));
+                Ring(0, 0, radius + 21 * (1 - q * q), 0.6 + 0.18 * i, c[5], Sin(q * PI), pass);
             }
             if (full)
             {
@@ -56,12 +63,13 @@ namespace PixelFx
                     double angle = rng.Range(0, Tau) + age * age * 1.4;
                     double r = radius + rng.Range(14, 45) * (1 - age * age);
                     double dx = Cos(angle), dy = Sin(angle);
+                    if (!InPass(dy, pass)) continue;
                     p.Line(dx * r, dy * r, dx * (r + 4 * age), dy * (r + 4 * age),
                         age > 0.66 ? c[6] : c[3], Sin(age * PI) * Min(1, progress * 5));
                 }
             }
-            p.Glow(0, 0, 43, c[4], 0.2 + 0.2 * progress);
-            Orb(0, 0, radius, t);
+            if (pass != PixelFxRenderPass.Front) p.Glow(0, 0, 43, c[4], 0.2 + 0.2 * progress);
+            if (pass != PixelFxRenderPass.Back) Orb(0, 0, radius, t);
         }
 
         private void Flight(double t, bool full)
@@ -165,15 +173,21 @@ namespace PixelFx
             }
         }
 
-        private void Ring(double x, double y, double radius, double squash, uint ink, double alpha)
+        private void Ring(double x, double y, double radius, double squash, uint ink, double alpha,
+            PixelFxRenderPass pass = PixelFxRenderPass.Combined)
         {
             int count = (int)Ceiling(radius * Tau * 1.2);
             for (int i = 0; i < count; i++)
             {
                 double a = i * Tau / count;
-                p.Dot(x + radius * Cos(a), y + radius * Sin(a) * squash, ink, alpha);
+                double depth = Sin(a);
+                if (InPass(depth, pass))
+                    p.Dot(x + radius * Cos(a), y + radius * depth * squash, ink, alpha);
             }
         }
+
+        private static bool InPass(double depth, PixelFxRenderPass pass) =>
+            pass == PixelFxRenderPass.Combined || (depth < 0) == (pass == PixelFxRenderPass.Back);
 
         private static double Clamp(double n) => Max(0, Min(1, n));
     }

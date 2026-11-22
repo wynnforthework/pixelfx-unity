@@ -8,11 +8,16 @@ namespace PixelFx
     {
         public Vector3 Position { get; }
         public float Strength { get; }
+        public PixelFxActorBinding Binding { get; }
 
         public PixelFxHit(Vector3 position, float strength = 1)
+            : this(position, strength, default) { }
+
+        public PixelFxHit(Vector3 position, float strength, PixelFxActorBinding binding)
         {
             Position = position;
             Strength = strength;
+            Binding = binding;
         }
     }
 
@@ -22,6 +27,8 @@ namespace PixelFx
         public Vector2 Direction { get; set; } = Vector2.right;
         public Vector3? LaunchPoint { get; set; }
         public Vector3? LandingPoint { get; set; }
+        public PixelFxActorBinding Binding { get; set; }
+        public PixelFxActorBinding CastBinding { get; set; }
         // Null uses the landing point. An empty list means no visible impact.
         public IReadOnlyList<PixelFxHit> Hits { get; set; }
         public PixelFxQuality? Quality { get; set; }

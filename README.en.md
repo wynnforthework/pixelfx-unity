@@ -63,6 +63,12 @@ public sealed class FireballExample : MonoBehaviour
 
 Flight speed is in Unity units per effect second. Settings and target positions are copied when playback starts. Passing no hit list creates one full-strength impact at the landing point. Pass an empty list to omit impacts. `PixelFxPlayer.DefaultQuality` sets the global default and `PixelFxContext.Quality` overrides it per playback. **Full** draws all layers, **Simplified** omits decorative particles, and **Off** keeps timing and completion while allocating no render surfaces. Use `Stop()` on the returned handle to cancel playback.
 
+### Actor-relative playback
+
+Open **Tools > PixelFX > Open Demo**, enter Play Mode, and click **Layered Fireball**. The far arc passes behind caster A, the near arc passes in front, and the explosion follows target B's hit anchor in front of B.
+
+Bind a character's `SpriteRenderer` with `PixelFxActorBinding`. Use `PixelFxContext.Binding` for a one-shot, `CastBinding` for the cast and each `PixelFxHit.Binding` for its impact. `Lower` defaults to the feet and draws behind the actor. `Middle` defaults to the body center and uses the effect's authored back and front passes. `Upper` defaults to the head and draws in front of the actor. Supply an anchor `Transform` to place a foreground impact at the body. Bindings follow the actor by default. Set `follow: false` to use the position at playback start. See the [authoring guide](docs/authoring.md#actor-relative-effect-layers).
+
 ## Migration progress
 
 On Unity 2022.3.62f3 Windows editor in headless batch mode, Heavy Cleave averaged the following CPU work per 30 FPS effect sample. Texture submission measures the CPU call without a graphics device.
@@ -88,7 +94,8 @@ The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Parry
 - [ ] Refine Fireball Throw against the upstream stage art
 - [ ] Port melee and impacts, then projectiles and chained moves
 - [ ] Port elemental and status effects, then environment, creatures, and UI
-- [ ] Add reusable actor masks, action timing, and front/back sprite layers
+- [x] Support actor-relative Lower, Middle and Upper playback
+- [ ] Add reusable actor masks and action timing
 
 ## Authoring and license
 
