@@ -6,12 +6,12 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/ground-slam` | Next | Read `src/fx/impacts/ground-slam.js` and `_lib.js`. Port the floor cracks, paired shock fronts, dust column and rolling debris. Reuse the impact star and Blunt Hit's debris logic where applicable. Compare seed 5 at 30 FPS. |
+| `impacts/ground-slam` | Next | Preserve the upstream back and front passes. Validate shared layer support, then port the cracks, shock fronts, dust and debris. Compare seed 5 at 30 FPS. |
 | `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
-2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md).
+2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
 3. Set the queue status to **In progress** before starting. After implementation, record any unfinished step, dependency, or validation failure directly in the queue before stopping.
 4. Run `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3 and compare representative Full frames against the pinned JavaScript source at the same seed and 30 FPS. Check anchor, duration, the library preview, asset playback, and the Simplified and Off quality levels.
 5. Check a catalog entry when it passes. Store the seed, comparison frames and any intentional differences in the completed entry or a linked evidence file. Update both README totals to match the checked entries. The original Shuriken belongs outside the upstream count.
@@ -19,9 +19,23 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 An unchecked entry without a queue note is pending. Keep upcoming batches small enough to leave a verified checkpoint between them.
 
+## Character layering assessment
+
+For each next effect, read its upstream drawing passes and any referenced effects or helpers. Check `drawBack`, `draw`, `p.layer`, per-particle layer arguments, and far/near geometry. A `drawBack` declaration is a search lead. Inspect what it draws and what should sit between the passes. Check actor mask or pixel reads separately. For chained actions, inspect the cast, travel and hit phases and any upstream `act` events.
+
+Record which stages use a single layer or need separate back and front passes, the sorting reference for each stage, and whether it follows an actor or uses a position snapshot. Record any required actor mask or action events. When a prerequisite is missing, put it in the queue, verify and commit the shared capability first, then verify and commit the effect. Layered acceptance includes testing overlap with a character and comparing the standalone preview with upstream.
+
+| Effect | Layering and actor requirements |
+| --- | --- |
+| `impacts/ground-slam` | Upstream rear pass draws the crater, cracks, embers, far dust ring and back particles. Front pass draws the near ring, shock fronts, rocks, foreground particles and impact flash. Preserve both passes and verify with an actor between them. Use this port to exercise the shared ordering support. |
+| `arcane/magic-circle-cast`, `fire/fire-ring`, `holy/divine-shield` | Upstream draws around a center or actor using both passes. Verify the geometry and particle assignment for each effect when it enters the queue. For a ring, put the far arc behind the actor and the near arc in front. |
+| `moves/fireball-throw` | For the requested A-to-B acceptance case, the cast ring follows A with both passes, the projectile follows its travel path, and each impact follows its own target in front of that target for the full impact phase. Check with A and B moving and using different sorting orders. This is a Unity acceptance case for stage-specific binding and sorting. |
+| `impacts/hit-flash` | The recolor and outline use the hit actor's current sprite silhouette. Track actor mask support as its own prerequisite. |
+| `melee/heavy-cleave` | Standalone frames are verified. Upstream places the far and near shock-ring halves around the fighter. Revisit actor-overlap playback once shared layering is available. |
+
 ## Latest checkpoint
 
-**5 / 244 verified** in Unity as of 2026-11-22. Ground Slam is next. The floor cracks, shock fronts and dust column still need a C# port.
+**5 / 244 verified** in Unity as of 2026-11-22. Ground Slam is next. Its layered playback depends on shared back/front ordering, and the floor cracks, shock fronts and dust column still need a C# port.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
