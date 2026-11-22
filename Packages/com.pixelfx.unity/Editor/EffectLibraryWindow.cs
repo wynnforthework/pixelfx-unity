@@ -13,6 +13,8 @@ namespace PixelFx.Editor
 
         private static readonly string[] LibraryFilters = { "All", "Built-in", "Variants", "Originals" };
         private const float TileHeight = 95;
+        private const float GridPadding = 6;
+        private const float TileGap = 4;
 
         [Serializable]
         private sealed class EffectSnapshot
@@ -292,13 +294,27 @@ namespace PixelFx.Editor
 
         private float GridWidth => Mathf.Clamp(position.width * 0.37f, 245, 400);
 
-        private static int GridColumns(float width) => Mathf.Max(2, Mathf.FloorToInt((width - 18) / 123));
+        private static float GridScrollbarWidth => GUI.skin.verticalScrollbar.fixedWidth + GUI.skin.verticalScrollbar.margin.left;
+
+        private float GridContentWidth => GridWidth - 2 * GridPadding - GridScrollbarWidth;
+
+        private int GridColumns => Mathf.Max(2, Mathf.FloorToInt((GridContentWidth + TileGap) / 123));
 
         private void DrawGrid()
         {
-            float width = GridWidth;
-            using (new EditorGUILayout.VerticalScope(GUILayout.Width(width)))
+            using (new EditorGUILayout.HorizontalScope(GUILayout.Width(GridWidth)))
             {
+                GUILayout.Space(GridPadding);
+                DrawGridContents();
+                GUILayout.Space(GridPadding);
+            }
+        }
+
+        private void DrawGridContents()
+        {
+            using (new EditorGUILayout.VerticalScope(GUILayout.Width(GridWidth - 2 * GridPadding)))
+            {
+                GUILayout.Space(GridPadding);
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUI.BeginChangeCheck();
@@ -306,32 +322,35 @@ namespace PixelFx.Editor
                     libraryFilter = (LibraryFilter)EditorGUILayout.Popup((int)libraryFilter, LibraryFilters,
                         EditorStyles.toolbarPopup, GUILayout.Width(88));
                     if (EditorGUI.EndChangeCheck()) gridScroll = Vector2.zero;
+                    GUILayout.Space(GridScrollbarWidth);
                 }
+                GUILayout.Space(TileGap);
                 var matches = CollectMatches();
-                gridScroll = EditorGUILayout.BeginScrollView(gridScroll);
-                int columns = GridColumns(width);
-                float tileWidth = (width - 18) / columns - 5;
+                gridScroll = EditorGUILayout.BeginScrollView(gridScroll, false, true);
+                int columns = GridColumns;
+                float contentWidth = GridContentWidth;
+                float tileWidth = (contentWidth - (columns - 1) * TileGap) / columns;
                 for (int i = 0; i < matches.Count; i += columns)
                 {
-                    using (new EditorGUILayout.HorizontalScope())
+                    Rect row = GUILayoutUtility.GetRect(contentWidth, TileHeight, GUILayout.Width(contentWidth));
+                    for (int j = i; j < Mathf.Min(i + columns, matches.Count); j++)
                     {
-                        for (int j = i; j < Mathf.Min(i + columns, matches.Count); j++)
-                        {
-                            var (effect, variant) = matches[j];
-                            Rect tile = GUILayoutUtility.GetRect(tileWidth, TileHeight, GUILayout.Width(tileWidth));
-                            bool selected = selectedId == effect.Id && selectedVariant == variant;
-                            string name = variant == null ? effect.Name : variant.name;
-                            if (GUI.Button(tile, new GUIContent("", name + " / " + effect.Category)))
-                                Select(effect.Id, variant);
-                            if (Event.current.type != EventType.Repaint) continue;
+                        var (effect, variant) = matches[j];
+                        var tile = new Rect(row.x + (j - i) * (tileWidth + TileGap), row.y, tileWidth, TileHeight);
+                        bool selected = selectedId == effect.Id && selectedVariant == variant;
+                        string name = variant == null ? effect.Name : variant.name;
+                        if (GUI.Button(tile, new GUIContent("", name + " / " + effect.Category)))
+                            Select(effect.Id, variant);
+                        if (Event.current.type == EventType.Repaint)
                             DrawTileArtwork(tile, Thumbnail(effect, variant), name, selected);
-                        }
                     }
+                    GUILayout.Space(TileGap);
                 }
                 if (matches.Count == 0)
                     GUILayout.Label(libraryFilter == LibraryFilter.Variants ? "No matching variants" : "No matching effects",
                         EditorStyles.centeredGreyMiniLabel);
                 EditorGUILayout.EndScrollView();
+                GUILayout.Space(GridPadding);
             }
         }
 
@@ -664,7 +683,7 @@ namespace PixelFx.Editor
                 libraryFilter = LibraryFilter.Variants;
                 search = "";
                 int index = variants.IndexOf(selectedVariant);
-                gridScroll = new Vector2(0, TileHeight * (Mathf.Max(0, index) / GridColumns(GridWidth)));
+                gridScroll = new Vector2(0, (TileHeight + TileGap) * (Mathf.Max(0, index) / GridColumns));
             }
         }
     }
