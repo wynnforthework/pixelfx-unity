@@ -7,6 +7,25 @@ namespace PixelFx.Editor
 {
     internal sealed class EffectLibraryWindow : EditorWindow
     {
+        [Serializable]
+        private sealed class EffectSnapshot
+        {
+            public string effectId;
+            public string effectName;
+            public string variantAssetPath;
+            public PixelFxSettings draftSettings;
+            public PreviewSnapshot preview;
+        }
+
+        [Serializable]
+        private sealed class PreviewSnapshot
+        {
+            public string quality;
+            public float timeSeconds;
+            public float targetDistance;
+            public bool secondaryTarget;
+        }
+
         [SerializeField] private string selectedId = PixelFxLibrary.HeavyCleave;
         [SerializeField] private PixelFxVariant selectedVariant;
         [SerializeField] private string search = "";
@@ -191,12 +210,35 @@ namespace PixelFx.Editor
                 if (GUILayout.Button(new GUIContent("◀", "Previous frame"), EditorStyles.toolbarButton, GUILayout.Width(28))) Step(-1);
                 if (GUILayout.Button(new GUIContent("▶|", "Next frame"), EditorStyles.toolbarButton, GUILayout.Width(28))) Step(1);
                 loop = GUILayout.Toggle(loop, "Loop", EditorStyles.toolbarButton, GUILayout.Width(48));
+                if (GUILayout.Button(new GUIContent("Copy for AI", "Copy the selected effect, draft settings and preview state"),
+                    EditorStyles.toolbarButton, GUILayout.Width(85)))
+                    CopyForAi();
                 GUILayout.FlexibleSpace();
                 GUILayout.Label($"{time:F2} / {preview.Duration:F2} s", EditorStyles.miniLabel);
             }
             EditorGUI.BeginChangeCheck();
             float next = EditorGUILayout.Slider(time, 0, preview.Duration);
             if (EditorGUI.EndChangeCheck()) { playing = false; time = next; }
+        }
+
+        private void CopyForAi()
+        {
+            var snapshot = new EffectSnapshot
+            {
+                effectId = selectedId,
+                effectName = PixelFxLibrary.Get(selectedId).Name,
+                variantAssetPath = selectedVariant == null ? "" : AssetDatabase.GetAssetPath(selectedVariant),
+                draftSettings = draft,
+                preview = new PreviewSnapshot
+                {
+                    quality = quality.ToString(),
+                    timeSeconds = time,
+                    targetDistance = targetDistance,
+                    secondaryTarget = splash,
+                },
+            };
+            EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(snapshot, true);
+            ShowNotification(new GUIContent("Copied for AI"));
         }
 
         private void Step(int direction)
