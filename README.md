@@ -8,6 +8,9 @@ Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Fireball Thro
 
 ## 特效预览
 
+![](docs/media/heavy-cleave-unity-comparison.gif) 
+
+
 | Heavy Cleave（重劈） | Fireball Throw（火球投掷） | Shuriken（手里剑） |
 | --- | --- | --- |
 | ![重劈斩击与地面冲击](docs/media/heavy-cleave.gif) | ![火球蓄力、飞行和两处爆炸](docs/media/fireball-throw.gif) | ![旋转飞行的手里剑与粒子拖尾](docs/media/shuriken.gif) |
@@ -30,9 +33,11 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 
 打开 **Tools > PixelFX > Effect Library**。可以按特效名称、ID、类别或变体名称搜索网格。选中特效后，可在编辑模式下播放、暂停、逐帧查看或拖动时间轴。参数修改会即时应用到预览草稿。点击 **Save As Variant** 可在 `Assets` 下创建变体资产，点击 **Update Variant** 可将草稿写回当前选中的用户变体，并支持撤销。目标距离、次要目标和质量档可用于预览不同场景。
 
+在预览播放条点击 **Copy for AI**，可复制当前特效 ID、资产路径、未保存的参数和预览设置。把复制的文本贴到 Codex，再说明想怎么改。
+
 ## 在代码中播放特效
 
-添加 `PixelFxPlayer` 组件，将已保存的 `PixelFxVariant` 资产赋给下方示例中的字段。也可以传入 `PixelFxLibrary` 中的特效 ID，使用默认参数播放。
+内置特效和用户变体都可以作为 `PixelFxVariant` 资产使用。选中卡片后点 **Ping Asset**，在 Project 窗口定位对应的 `.asset`，再拖到场景或 Prefab 的 Inspector 字段。内置资产读取 C# 注册表中的默认参数，变体资产读取保存的参数。添加 `PixelFxPlayer` 后，两者都用 `player.Play(effect, context)`。也支持用特效 ID 播放。
 
 ```csharp
 using PixelFx;
@@ -61,7 +66,7 @@ public sealed class FireballExample : MonoBehaviour
 
 ## 移植进度
 
-移植以 [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826) 为基准。已通过上游画面对照验收的特效为 **1 / 244**，即 Heavy Cleave。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[完整移植清单](docs/migration.md)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **2 / 244**，包括 Heavy Cleave 和 Hit Spark。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken

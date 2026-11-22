@@ -8,6 +8,8 @@ Procedural pixel art effects for Unity. The package includes Heavy Cleave, Fireb
 
 ## Effect previews
 
+![](docs/media/heavy-cleave-unity-comparison.gif) 
+
 | Heavy Cleave | Fireball Throw | Shuriken |
 | --- | --- | --- |
 | ![Heavy Cleave slash and ground impact](docs/media/heavy-cleave.gif) | ![Fireball charge, flight, and two impacts](docs/media/fireball-throw.gif) | ![Spinning Shuriken with a particle trail](docs/media/shuriken.gif) |
@@ -30,9 +32,11 @@ For a local checkout, use **Add package from disk** and select `Packages/com.pix
 
 Open **Tools > PixelFX > Effect Library**. Search the grid by effect name, ID, category or variant name. Select a tile to play, pause, step or scrub its animation in Edit Mode. Tweaks affect the preview draft. **Save As Variant** creates an asset under `Assets`. **Update Variant** writes the draft back to the selected user asset and supports Undo. Distance, secondary target and quality are preview controls.
 
+Click **Copy for AI** in the preview toolbar to copy the selected effect ID, asset path, unsaved settings, and preview state. Paste the text into Codex with your requested changes.
+
 ## Play from code
 
-Add a `PixelFxPlayer` component. Reference a saved `PixelFxVariant` in the field below, or pass an ID from `PixelFxLibrary` to play the defaults.
+Built-in effects and user variants both use `PixelFxVariant` assets. Select a card and click **Ping Asset** to locate its `.asset` in the Project window, then drag it into an Inspector field on a scene object or prefab. Built-in assets read the C# library defaults. User variants read their saved settings. Add a `PixelFxPlayer` and call `player.Play(effect, context)` for either asset. Playback by effect ID is also supported.
 
 ```csharp
 using PixelFx;
@@ -76,7 +80,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-Baseline [patch-gg/pixelfx@5294518](https://github.com/patch-gg/pixelfx/tree/5294518ce7c72e48b6100a744596e0acf57f2826). **1 / 244 verified against the upstream look**, plus **1 gameplay-adapted move** and **1 original effect**. See the [effect checklist](docs/migration.md) for acceptance status.
+The migration targets `patch-gg/pixelfx@5294518`. **2 / 244** effects passed the upstream visual comparison, Heavy Cleave and Hit Spark. Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken
