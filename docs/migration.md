@@ -6,7 +6,9 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `moves/fireball-throw` | Next | Compare the Unity cast, flight and blast against the pinned upstream render at seed 1 and 30 FPS. Record intentional gameplay adaptations, identify remaining visual gaps and verify the layered cast and per-target impacts. |
+| `arcane/spell-charge` | Next | Port the standalone charge at its upstream seed and loop duration. Inspect the front-only upstream drawing and decide how Fireball Throw can reuse it with a Middle cast ring. Verify the orb, contracting rings, spiral streaks, arcs and glow before registering and counting this effect. |
+| `fire/fireball` and `explosions/small-explosion` | Pending | Port the remaining Fireball Throw dependencies after Spell Charge. Inspect the explosion's back and front passes and record actor-layer choices before implementation. |
+| `moves/fireball-throw` | Comparison complete, visual fidelity pending | Replace the approximate stages with the three verified renderers, then repeat the seeded comparison and check actor overlap in the Layered Fireball Demo. Preserve distance-based timing, the Middle cast and Upper per-target impacts. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
 2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
@@ -33,11 +35,23 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**7 / 244 verified** in Unity as of 2026-11-22. Fireball Throw visual comparison is next.
+**7 / 244 verified** in Unity as of 2026-11-22. The Fireball Throw comparison is complete. Its stage artwork still needs the three upstream dependencies before it can count as verified.
 
 Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
-Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open. Fireball Throw still needs upstream visual comparison before it counts as a verified port.
+Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open.
+
+### Fireball Throw comparison
+
+Captured 205 frames per build at seed 1 and 30 FPS through the 6.81-second reference timeline. The [comparison sheet](media/fireball-throw-comparison.png) shows upstream JavaScript, Unity Full and Unity Simplified at frames 15, 34, 46 and 90. The captures exclude actors and align on a 356 × 244 canvas with origin (64, 198). The Unity comparison supplies separate anchors to match the source's charge (15, -22), launch (28, -22), flight endpoint (184.4, -22) and impact (190, 0), in source pixels at 32 pixels per world unit. Upstream uses child seeds 1, 2 and 3. The current Unity stages derive their own particle streams from seed 1. One transparent frame matched in RGBA and alpha.
+
+| Stage | Visual gaps to resolve |
+| --- | --- |
+| Cast | Unity starts at time zero and draws three rings around the anchor. Upstream begins the charge at 0.08 seconds and adds tilted rings, spiral streaks, branching arcs and a white core near the hand. Reuse Spell Charge with Unity's Middle layering and support the caller's cast duration. |
+| Flight | Unity has a moving core, a narrow flame band and scattered tail particles. Upstream layers flame tongues, a swirling hot head, a longer broken tail, smoke and embers. Keep the path and flight duration driven by Unity's launch and landing points. |
+| Impact | Unity has separate flashes, thin rings and a short, low smoke cloud. Upstream adds a brighter initial fireball, thick shock fronts, a tall rolling smoke column, rocks, embers, brands and cooling scorch. Retain each hit's strength and Upper sorting. Gameplay owns upstream-style poses, hit stop, shake and charring the actor. |
+
+Full and Simplified reproduced all 205 captured frames after a forward and backward seek. Duration and cleanup, near/far and zero-distance timing, caster and target movement, and primary versus secondary impacts passed batch validation. The capture checks compare stage art on transparency. Interactive preview and actor overlap in Play Mode remain to be reviewed.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
@@ -187,7 +201,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [ ] `moves/arrow-shot`
 - [ ] `moves/dash-strike`
 - [ ] `moves/earth-stomp`
-- [ ] `moves/fireball-throw` — playable C# adaptation. Upstream charge and blast details remain.
+- [ ] `moves/fireball-throw` — playable C# adaptation. Seeded comparison complete. Upstream charge, projectile and blast renderers remain.
 - [ ] `moves/ground-pound`
 - [ ] `moves/holy-smite`
 - [ ] `moves/ice-lance-throw`
