@@ -221,7 +221,7 @@ namespace PixelFx.Editor
         private void DrawPreview()
         {
             DrawPreviewControls();
-            Rect rect = GUILayoutUtility.GetRect(300, position.height * 0.42f, GUILayout.ExpandWidth(true));
+            Rect rect = GUILayoutUtility.GetRect(300, 80, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             HandlePreviewInput(rect);
             if (Event.current.type == EventType.Repaint) preview.Draw(rect, time, previewCamera);
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
@@ -372,7 +372,7 @@ namespace PixelFx.Editor
                     if (GUILayout.Button("Update Variant", GUILayout.Width(108))) SaveVariant(true);
                 if (GUILayout.Button("Save As Variant", GUILayout.Width(110))) SaveVariant(false);
             }
-            settingsScroll = EditorGUILayout.BeginScrollView(settingsScroll);
+            settingsScroll = EditorGUILayout.BeginScrollView(settingsScroll, GUILayout.ExpandHeight(false));
             float originalLabelWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 125;
             EditorGUI.BeginChangeCheck();
