@@ -536,7 +536,7 @@ namespace PixelFx.Editor
             EditorGUI.BeginChangeCheck();
             previewEffectPosition = EditorGUILayout.Vector3Field("Position", previewEffectPosition);
             previewEffectRotation = EditorGUILayout.Vector3Field("Rotation", previewEffectRotation);
-            previewEffectScaleAxes = EditorGUILayout.Vector3Field("Scale Multiplier", previewEffectScaleAxes);
+            previewEffectScaleAxes = EditorGUILayout.Vector3Field("Scale", previewEffectScaleAxes);
             if (EditorGUI.EndChangeCheck()) ApplyPreviewPlacement();
         }
 
