@@ -21,6 +21,7 @@ namespace PixelFx.Editor
             ValidateVariants();
             ValidateStages();
             ValidatePlayback();
+            ValidateVariantPlacement();
             ValidateActorLayers();
             ValidateActorMask();
             ImportSample();
@@ -35,18 +36,24 @@ namespace PixelFx.Editor
             {
                 var settings = PixelFxLibrary.Get(PixelFxLibrary.HeavyCleave).Defaults();
                 settings.bladeWidth = 1.5f;
-                variant.Configure(PixelFxLibrary.HeavyCleave, settings);
+                var placement = new PixelFxPlacement(new Vector3(1, 2, 3), new Vector3(10, 20, 30), new Vector3(2, 0.5f, -1));
+                variant.Configure(PixelFxLibrary.HeavyCleave, settings, placement);
                 AssetDatabase.CreateAsset(variant, TestAsset);
                 AssetDatabase.SaveAssets();
                 Resources.UnloadAsset(variant);
                 variant = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(TestAsset);
                 Check(variant.EffectId == PixelFxLibrary.HeavyCleave && variant.Settings.bladeWidth == 1.5f, "Variant persisted");
+                Check(variant.Placement.HasValue && variant.Placement.Value.position == placement.position
+                    && variant.Placement.Value.rotation == placement.rotation && variant.Placement.Value.scale == placement.scale,
+                    "Variant placement persisted");
                 Undo.RecordObject(variant, "PixelFX validation");
                 settings.bladeWidth = 0.5f;
-                variant.Configure(PixelFxLibrary.HeavyCleave, settings);
+                variant.Configure(PixelFxLibrary.HeavyCleave, settings, null);
                 Undo.FlushUndoRecordObjects();
+                Check(!variant.Placement.HasValue, "Updating without placement clears the saved transform");
                 Undo.PerformUndo();
-                Check(variant.Settings.bladeWidth == 1.5f, "Variant undo");
+                Check(variant.Settings.bladeWidth == 1.5f && variant.Placement.HasValue
+                    && variant.Placement.Value.scale == placement.scale, "Variant undo restores settings and placement");
 
                 var output = Environment.GetEnvironmentVariable("PIXELFX_VALIDATION_OUTPUT");
                 foreach (var effect in PixelFxLibrary.Effects)
@@ -118,6 +125,7 @@ namespace PixelFx.Editor
                     var asset = AssetDatabase.LoadAssetAtPath<PixelFxVariant>(EffectLibraryWindow.DefaultAssetPath(effect));
                     Check(asset != null && asset.EffectId == effect.Id, "Built-in asset: " + effect.Id);
                     Check(asset.Settings.seed == effect.Defaults().seed, "Built-in settings: " + effect.Id);
+                    Check(!asset.Placement.HasValue, "Built-in placement: " + effect.Id);
                     var context = new PixelFxContext { LandingPoint = Target, Quality = PixelFxQuality.Full };
                     var byId = player.Play(effect.Id, context: context);
                     var byAsset = player.Play(asset, context);
@@ -144,6 +152,64 @@ namespace PixelFx.Editor
                 }
             }
             finally { Object.DestroyImmediate(obj); }
+        }
+
+        private static void ValidateVariantPlacement()
+        {
+            var obj = new GameObject("Variant placement player", typeof(PixelFxPlayer));
+            var variant = ScriptableObject.CreateInstance<PixelFxVariant>();
+            var player = obj.GetComponent<PixelFxPlayer>();
+            PixelFxPlayback playback = null;
+            try
+            {
+                var origin = new Vector3(3, 4, 1);
+                var offset = new Vector3(1, 2, 0.5f);
+                var rotation = new Vector3(20, 30, 40);
+                var scale = new Vector3(2, 0.5f, 3);
+                var placement = new PixelFxPlacement(offset, rotation, scale);
+                variant.Configure(PixelFxLibrary.HeavyCleave, null, placement);
+                obj.transform.position = new Vector3(18, 20);
+                obj.transform.localScale = Vector3.one * 3;
+                var context = new PixelFxContext { Position = origin, Direction = Vector2.up };
+                playback = player.Play(variant, context);
+                var space = GameObject.Find("PixelFX Placement " + variant.EffectId).transform;
+                var sprite = space.GetChild(0);
+                var facing = Quaternion.Euler(0, 0, 90);
+                Check(Vector3.Distance(sprite.position, origin + facing * offset) < 0.001f
+                    && Quaternion.Angle(sprite.rotation, facing * Quaternion.Euler(rotation)) < 0.01f
+                    && space.localScale == scale, "Single effect applies saved placement relative to playback facing");
+                playback.Stop();
+                Check(space == null, "Stop releases the placement root");
+
+                context.Direction = Vector2.right;
+                context.LandingPoint = origin + Target;
+                context.Hits = new[] { new PixelFxHit(origin + Target), new PixelFxHit(origin + Target + Vector3.up, 0.5f) };
+                variant.Configure(PixelFxLibrary.FireballThrow, null, placement);
+                var timeline = new PixelFxTimeline(variant.EffectId, variant.Settings, context);
+                playback = player.Play(variant, context);
+                space = GameObject.Find("PixelFX Placement " + variant.EffectId).transform;
+                var transform = Matrix4x4.TRS(origin + offset, Quaternion.Euler(rotation), scale);
+                player.Tick(timeline.CastTime + timeline.FlightTime * 0.5f);
+                Check(Vector3.Distance(space.GetChild(0).position, transform.MultiplyPoint3x4(Target * 0.5f)) < 0.001f,
+                    "Fireball transforms the flight path");
+                player.Tick(timeline.FlightTime * 0.5f + 0.1f);
+                Check(Vector3.Distance(space.GetChild(0).position, transform.MultiplyPoint3x4(Target)) < 0.001f
+                    && Vector3.Distance(space.GetChild(1).position, transform.MultiplyPoint3x4(Target + Vector3.up)) < 0.001f,
+                    "Fireball transforms each impact in the same frame");
+                player.Tick(playback.Duration);
+                Check(playback.IsDone && !playback.WasStopped && space == null, "Completion releases the placement root");
+
+                context.Quality = PixelFxQuality.Off;
+                playback = player.Play(variant, context);
+                Check(playback.Duration == timeline.Duration && GameObject.Find("PixelFX Placement " + variant.EffectId) == null,
+                    "Off keeps timing and skips the placement root");
+            }
+            finally
+            {
+                playback?.Stop();
+                Object.DestroyImmediate(variant);
+                Object.DestroyImmediate(obj);
+            }
         }
 
         private static void ValidateActorLayers()

@@ -25,6 +25,7 @@ namespace PixelFx
         internal PixelFxHit[] Hits => fireball?.Hits ?? Array.Empty<PixelFxHit>();
         internal float CastTime => fireball?.CastTime ?? 0;
         internal float FlightTime => fireball?.FlightTime ?? 0;
+        internal Vector3 PlacementOrigin => fireball?.CastOrigin ?? anchor;
 
         internal PixelFxTimeline(string id, PixelFxSettings settings, PixelFxContext context, bool previewActor = false,
             HitFlashPart hitFlashPart = HitFlashPart.Combined)

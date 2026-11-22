@@ -30,6 +30,7 @@ namespace PixelFx.Editor
             public Vector3 effectPosition;
             public Vector3 effectRotation;
             public Vector3 effectScale;
+            public bool includeTransformInVariant;
         }
 
         [SerializeField] private string selectedId = PixelFxLibrary.HeavyCleave;
@@ -44,6 +45,7 @@ namespace PixelFx.Editor
         [SerializeField] private Vector3 previewEffectPosition;
         [SerializeField] private Vector3 previewEffectRotation;
         [SerializeField] private Vector3 previewEffectScaleAxes = Vector3.one;
+        [SerializeField] private bool includeTransformInVariant;
         [SerializeField, HideInInspector, FormerlySerializedAs("previewEffectScale")]
         private float legacyPreviewEffectScale;
         [SerializeField] private PreviewCamera previewCamera = new PreviewCamera();
@@ -70,7 +72,7 @@ namespace PixelFx.Editor
             }
             minSize = new Vector2(700, 420);
             RefreshVariants();
-            Select(selectedId, selectedVariant);
+            Select(selectedId, selectedVariant, keepBuiltinPreview: true);
             EditorApplication.update += Tick;
             EditorApplication.projectChanged += OnProjectChanged;
             ObjectChangeEvents.changesPublished += OnObjectsChanged;
@@ -206,11 +208,21 @@ namespace PixelFx.Editor
                 || (source != null && obj.transform.IsChildOf(source.transform)));
         }
 
-        private void Select(string id, PixelFxVariant variant)
+        private void Select(string id, PixelFxVariant variant, bool keepBuiltinPreview = false)
         {
             string nextId = PixelFxLibrary.Contains(id) ? id : PixelFxLibrary.HeavyCleave;
-            if (selectedId != nextId)
+            if (!keepBuiltinPreview || variant != null)
+            {
+                var placement = variant != null ? variant.Placement : null;
                 ResetPreviewPlacement();
+                includeTransformInVariant = placement.HasValue;
+                if (placement is PixelFxPlacement saved)
+                {
+                    previewEffectPosition = saved.position;
+                    previewEffectRotation = saved.rotation;
+                    previewEffectScaleAxes = saved.scale;
+                }
+            }
             selectedId = nextId;
             selectedVariant = variant;
             var effect = PixelFxLibrary.Get(selectedId);
@@ -445,6 +457,7 @@ namespace PixelFx.Editor
                     effectPosition = previewEffectPosition,
                     effectRotation = previewEffectRotation,
                     effectScale = previewEffectScaleAxes,
+                    includeTransformInVariant = includeTransformInVariant,
                 },
             };
             EditorGUIUtility.systemCopyBuffer = JsonUtility.ToJson(snapshot, true);
@@ -538,6 +551,9 @@ namespace PixelFx.Editor
             previewEffectRotation = EditorGUILayout.Vector3Field("Rotation", previewEffectRotation);
             previewEffectScaleAxes = EditorGUILayout.Vector3Field("Scale", previewEffectScaleAxes);
             if (EditorGUI.EndChangeCheck()) ApplyPreviewPlacement();
+            includeTransformInVariant = EditorGUILayout.ToggleLeft(
+                new GUIContent("Include Transform in Variant", "Save Position, Rotation and Scale with the variant for runtime playback."),
+                includeTransformInVariant);
         }
 
         private void ApplyPreviewPlacement()
@@ -561,10 +577,13 @@ namespace PixelFx.Editor
 
         private void SaveVariant(bool update)
         {
+            PixelFxPlacement? placement = includeTransformInVariant
+                ? new PixelFxPlacement(previewEffectPosition, previewEffectRotation, previewEffectScaleAxes)
+                : (PixelFxPlacement?)null;
             if (update)
             {
                 Undo.RecordObject(selectedVariant, "Update PixelFX Variant");
-                selectedVariant.Configure(selectedId, draft);
+                selectedVariant.Configure(selectedId, draft, placement);
                 EditorUtility.SetDirty(selectedVariant);
             }
             else
@@ -574,7 +593,7 @@ namespace PixelFx.Editor
                 if (string.IsNullOrEmpty(path)) return;
                 path = AssetDatabase.GenerateUniqueAssetPath(path);
                 var variant = CreateInstance<PixelFxVariant>();
-                variant.Configure(selectedId, draft);
+                variant.Configure(selectedId, draft, placement);
                 AssetDatabase.CreateAsset(variant, path);
                 selectedVariant = variant;
             }

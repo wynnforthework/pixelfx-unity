@@ -29,16 +29,40 @@ namespace PixelFx
         }
     }
 
+    [Serializable]
+    internal struct PixelFxPlacement
+    {
+        public Vector3 position;
+        public Vector3 rotation;
+        public Vector3 scale;
+
+        internal PixelFxPlacement(Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            this.position = position;
+            this.rotation = rotation;
+            this.scale = scale;
+        }
+
+        internal void ApplyTo(Transform target)
+        {
+            target.SetLocalPositionAndRotation(position, Quaternion.Euler(rotation));
+            target.localScale = scale;
+        }
+    }
+
     public sealed class PixelFxVariant : ScriptableObject
     {
         [SerializeField] private string effectId;
         [SerializeField] private PixelFxSettings settings;
         [SerializeField, HideInInspector] private bool useLibraryDefaults;
+        [SerializeField] private bool includeTransform;
+        [SerializeField] private PixelFxPlacement placement = new PixelFxPlacement(Vector3.zero, Vector3.zero, Vector3.one);
 
         public string EffectId => effectId;
         public PixelFxSettings Settings => useLibraryDefaults
             ? PixelFxLibrary.Get(effectId).Defaults()
             : settings?.Copy();
+        internal PixelFxPlacement? Placement => !useLibraryDefaults && includeTransform ? placement : null;
 
         public void Configure(string id, PixelFxSettings values)
         {
@@ -46,6 +70,13 @@ namespace PixelFx
             effectId = definition.Id;
             settings = (values ?? definition.Defaults()).Copy();
             useLibraryDefaults = false;
+        }
+
+        internal void Configure(string id, PixelFxSettings values, PixelFxPlacement? transform)
+        {
+            Configure(id, values);
+            includeTransform = transform.HasValue;
+            placement = transform ?? new PixelFxPlacement(Vector3.zero, Vector3.zero, Vector3.one);
         }
     }
 }

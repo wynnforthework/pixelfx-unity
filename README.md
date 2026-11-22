@@ -37,7 +37,9 @@ https://github.com/wynnforthework/pixelfx-unity.git?path=/Packages/com.pixelfx.u
 
 把 Hierarchy 里的角色或 Project 里的 Prefab 拖到 **Actor** 槽。预览场景使用角色副本，支持 SpriteRenderer、普通或蒙皮网格，以及通过项目已有 spine-unity 运行库加载的 Spine SkeletonRenderer。火球可以将角色设为 **Caster** 或 **Target**。角色以静态姿势显示，时间轴控制特效。Hit Flash 的轮廓着色使用可读的 SpriteRenderer，其他角色可以一起查看冲击火花和闪光。
 
-在底部参数面板的 **Preview Transform** 调整特效的位置、旋转和各轴缩放倍率。每个特效从场景零点开始，角色作为摆放参照。点 **Reset** 恢复零位置、零旋转和 `(1, 1, 1)` 缩放，点 **Frame** 可以把摆放后的特效和角色重新纳入画面。火球的整条路径随预览变换，Hit Flash 的描边和闪白贴住角色，冲击线和光效可独立摆放。预览变换属于编辑器视图，变体只保存特效参数。
+在底部参数面板的 **Preview Transform** 调整特效的位置、旋转和各轴缩放。包内特效从场景零点开始，角色作为摆放参照。点 **Reset** 恢复零位置、零旋转和 `(1, 1, 1)` 缩放，点 **Frame** 可以把摆放后的特效和角色重新纳入画面。
+
+勾选 **Include Transform in Variant** 后，点 **Save As Variant** 或 **Update Variant** 会把摆放写入同一个资产。重新选中变体会载入保存的摆放，`PixelFxPlayer.Play(variant, context)` 会在播放锚点按播放方向应用它。取消勾选并更新会清除资产中的摆放。火球的整条视觉路径以施法起点为基准变换，阶段时长沿用游戏传入的距离。Hit Flash 的描边和闪白贴住角色，冲击线和光效可独立摆放。
 
 在预览播放条点击 **Copy for AI**，可复制当前特效 ID、资产路径、未保存的参数和预览设置。把复制的文本贴到 Codex，再说明想怎么改。
 

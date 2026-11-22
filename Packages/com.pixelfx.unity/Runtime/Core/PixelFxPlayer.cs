@@ -17,19 +17,32 @@ namespace PixelFx
         public PixelFxPlayback Play(PixelFxVariant variant, PixelFxContext context = null)
         {
             if (variant == null) throw new ArgumentNullException(nameof(variant));
-            return Play(variant.EffectId, variant.Settings, context);
+            return Play(variant.EffectId, variant.Settings, context, variant.Placement);
         }
 
-        public PixelFxPlayback Play(string effectId, PixelFxSettings settings = null, PixelFxContext context = null)
+        public PixelFxPlayback Play(string effectId, PixelFxSettings settings = null, PixelFxContext context = null) =>
+            Play(effectId, settings, context, null);
+
+        private PixelFxPlayback Play(string effectId, PixelFxSettings settings, PixelFxContext context, PixelFxPlacement? placement)
         {
-            var timeline = new PixelFxTimeline(effectId, settings, context ?? new PixelFxContext { Position = transform.position });
+            context ??= new PixelFxContext { Position = transform.position };
+            bool separateBody = placement.HasValue && effectId == PixelFxLibrary.HitFlash && context.Binding.Actor != null;
+            var timeline = new PixelFxTimeline(effectId, settings, context,
+                hitFlashPart: separateBody ? HitFlashPart.Accents : HitFlashPart.Combined);
             var handle = new PixelFxPlayback(timeline.Duration);
             if (!isActiveAndEnabled || stopping)
             {
                 handle.Stop();
                 return handle;
             }
-            var entry = new Playback(timeline, handle, transform, sortingLayer, sortingOrder);
+            Playback body = null;
+            if (separateBody && timeline.SurfaceCount > 0)
+            {
+                var bodyTimeline = new PixelFxTimeline(effectId, settings, context, hitFlashPart: HitFlashPart.Body);
+                body = new Playback(bodyTimeline, null, transform, sortingLayer, sortingOrder);
+            }
+            var entry = new Playback(timeline, handle, transform, sortingLayer, sortingOrder,
+                placement: placement, direction: context.Direction, body: body);
             active.Add(entry);
             handle.Completed += _ => Remove(entry);
             entry.Draw();
@@ -76,19 +89,34 @@ namespace PixelFx
             private readonly Transform parent;
             private readonly Transform sortedParent;
             private readonly Transform effectSpace;
+            private readonly PixelFxPlacement? placement;
+            private readonly Quaternion facing;
+            private readonly Playback body;
             private readonly int layerId, order;
 
             internal Playback(PixelFxTimeline timeline, PixelFxPlayback handle, Transform parent, string layer, int order,
-                Transform sortedParent = null, Transform effectSpace = null)
+                Transform sortedParent = null, Transform effectSpace = null, PixelFxPlacement? placement = null,
+                Vector2 direction = default, Playback body = null)
             {
                 this.timeline = timeline;
                 Handle = handle;
                 this.parent = parent;
                 this.sortedParent = sortedParent;
                 this.effectSpace = effectSpace;
+                this.body = body;
                 layerId = SortingLayer.NameToID(layer);
                 this.order = order;
                 primary = new (SpriteRenderer, PixelFxSurface)[timeline.SurfaceCount];
+                if (placement is PixelFxPlacement saved && primary.Length > 0)
+                {
+                    this.placement = saved;
+                    facing = direction.sqrMagnitude > 0 && timeline.Id != PixelFxLibrary.HitFlash
+                        ? Quaternion.Euler(0, 0, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg)
+                        : Quaternion.identity;
+                    var space = new GameObject("PixelFX Placement " + timeline.Id);
+                    UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(space, parent.gameObject.scene);
+                    this.effectSpace = space.transform;
+                }
                 rear = timeline.Definition.LayeredStage.HasValue && primary.Length > 0
                     ? new (SpriteRenderer, PixelFxSurface)[primary.Length]
                     : Array.Empty<(SpriteRenderer, PixelFxSurface)>();
@@ -114,6 +142,11 @@ namespace PixelFx
 
             internal void Draw()
             {
+                if (body != null)
+                {
+                    body.Time = Time;
+                    body.Draw();
+                }
                 for (int i = 0; i < primary.Length; i++)
                 {
                     var (renderer, surface) = primary[i];
@@ -128,6 +161,15 @@ namespace PixelFx
                     if (!visible) continue;
 
                     var rotation = Quaternion.Euler(0, 0, angle);
+                    if (placement is PixelFxPlacement saved)
+                    {
+                        var origin = stage == PixelFxStage.Single ? point : timeline.PlacementOrigin;
+                        effectSpace.SetPositionAndRotation(origin + facing * saved.position, facing * Quaternion.Euler(saved.rotation));
+                        effectSpace.localScale = saved.scale;
+                        var inverseFacing = Quaternion.Inverse(facing);
+                        point = inverseFacing * (point - origin);
+                        rotation = inverseFacing * rotation;
+                    }
                     bool actorOverlay = timeline.ActorMask != null;
                     SetPlacement(renderer, sortingRenderer, !actorOverlay && binding.Layer == PixelFxLayer.Lower, point, rotation);
                     if (actorOverlay)
@@ -161,7 +203,8 @@ namespace PixelFx
                     renderer.sortingLayerID = group != null ? group.sortingLayerID : actor.sortingLayerID;
                     int actorOrder = group != null ? group.sortingOrder : actor.sortingOrder;
                     int layerOffset = behind ? -1 : 1;
-                    if (effectSpace != null) layerOffset += order;
+                    if (effectSpace != null && placement == null) layerOffset += order;
+                    if (!behind && body != null) layerOffset++;
                     renderer.sortingOrder = Mathf.Clamp(actorOrder + layerOffset, short.MinValue, short.MaxValue);
                     if (sortedParent != null && effectSpace == null && !(actor is SpriteRenderer))
                     {
@@ -180,8 +223,14 @@ namespace PixelFx
 
             public void Dispose()
             {
+                body?.Dispose();
                 foreach (var slot in primary) Release(slot);
                 foreach (var slot in rear) Release(slot);
+                if (placement.HasValue)
+                {
+                    if (Application.isPlaying) Destroy(effectSpace.gameObject);
+                    else DestroyImmediate(effectSpace.gameObject);
+                }
             }
 
             private static void Release((SpriteRenderer Renderer, PixelFxSurface Surface) slot)

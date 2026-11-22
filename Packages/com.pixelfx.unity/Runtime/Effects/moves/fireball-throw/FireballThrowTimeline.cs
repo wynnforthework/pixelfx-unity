@@ -14,6 +14,7 @@ namespace PixelFx
         private Vector3 flightLaunch;
         private float flightAngle;
         private bool launched;
+        internal Vector3 CastOrigin => castOrigin;
 
         internal FireballThrowTimeline(PixelFxContext context, PixelFxSettings settings, Vector2 direction, float angle)
         {
