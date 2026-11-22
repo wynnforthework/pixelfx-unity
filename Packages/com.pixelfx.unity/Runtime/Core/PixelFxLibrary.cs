@@ -15,6 +15,7 @@ namespace PixelFx
         internal Func<PixelFxTimeline, PixelFxFrameRenderer> CreateRenderer { get; }
         internal Func<PixelFxTimeline, PixelFxLayerRenderer> CreateLayerRenderer { get; set; }
         internal PixelFxStage? LayeredStage { get; set; }
+        internal PixelFxLayer? DefaultActorAnchor { get; set; }
         private readonly int seed;
         private readonly uint[] palette;
 
@@ -51,6 +52,7 @@ namespace PixelFx
         public const string Parry = "impacts/parry";
         public const string BluntHit = "impacts/blunt-hit";
         public const string CriticalHit = "impacts/crit-hit";
+        public const string GroundSlam = "impacts/ground-slam";
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
@@ -86,6 +88,15 @@ namespace PixelFx
                 (CriticalHitEffect.Width, CriticalHitEffect.Height, CriticalHitEffect.OriginX, CriticalHitEffect.OriginY),
                 CriticalHitEffect.CreateRenderer,
                 0x2a0510, 0x5c0a1c, 0xa3142a, 0xe0302c, 0xff7a2a, 0xffc23d, 0xfff09a, 0xffffff),
+            new PixelFxDefinition(GroundSlam, "Ground Slam", "Impacts", 5, 0.2f, GroundSlamEffect.Duration,
+                (GroundSlamEffect.Width, GroundSlamEffect.Height, GroundSlamEffect.OriginX, GroundSlamEffect.OriginY),
+                GroundSlamEffect.CreateRenderer,
+                0x2a1712, 0x5e2c1c, 0xa4502a, 0xe8893a, 0xffc764, 0xfff0b4, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = GroundSlamEffect.CreateLayerRenderer,
+            },
         });
 
         private static readonly Dictionary<string, PixelFxDefinition> ById = BuildIndex();

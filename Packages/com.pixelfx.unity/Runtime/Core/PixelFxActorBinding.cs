@@ -21,14 +21,15 @@ namespace PixelFx
             Follow = follow;
         }
 
-        internal Vector3 PositionOr(Vector3 fallback)
+        internal Vector3 PositionOr(Vector3 fallback, PixelFxLayer? defaultAnchor = null)
         {
             if (Anchor != null) return Anchor.position;
             if (Actor == null) return fallback;
             var bounds = Actor.bounds;
             var position = bounds.center;
-            if (Layer == PixelFxLayer.Lower) position.y = bounds.min.y;
-            if (Layer == PixelFxLayer.Upper) position.y = bounds.max.y;
+            var anchorLayer = defaultAnchor ?? Layer;
+            if (anchorLayer == PixelFxLayer.Lower) position.y = bounds.min.y;
+            if (anchorLayer == PixelFxLayer.Upper) position.y = bounds.max.y;
             return position;
         }
 

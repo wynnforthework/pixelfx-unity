@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Ground Slam（震地）、Fireball Throw（火球投掷）和原创 Shuriken（手里剑）。
 
 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
 
@@ -68,11 +68,13 @@ public sealed class FireballExample : MonoBehaviour
 
 在 **Tools > PixelFX > Open Demo** 中进入 Play Mode，点击 **Layered Fireball**。施法环的远弧被 A 挡住，近弧盖住 A，爆炸跟随 B 的命中点并显示在 B 前面。
 
+同一面板的 **Ground Slam** 在角色脚下播放冲击。使用 `new PixelFxActorBinding(actor, PixelFxLayer.Middle, follow: false)` 可在脚底固定落点，让地裂、尘柱和远弧在角色身后绘制，近弧和碎石在身前绘制。
+
 通过 `PixelFxActorBinding` 绑定一个角色的 `SpriteRenderer`。单段效果使用 `PixelFxContext.Binding`，施法使用 `CastBinding`，每次命中使用各自的 `PixelFxHit.Binding`。`Lower` 默认锚定脚底并在角色后方，`Middle` 默认锚定身体中心并使用效果提供的前后两道绘制，`Upper` 默认锚定头顶并在角色前方。锚点可通过 `Transform` 覆盖，例如把前景爆炸放在身体中心。位置默认跟随角色，设置 `follow: false` 可使用播放开始时的位置。详见[制作规范](docs/authoring.md#actor-relative-effect-layers)。
 
 ## 移植进度
 
-移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **5 / 244**，包括 Heavy Cleave、Hit Spark、Parry、Blunt Hit 和 Critical Hit。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **6 / 244**，包括 Heavy Cleave、Hit Spark、Parry、Blunt Hit、Critical Hit 和 Ground Slam。Fireball Throw 已完成玩法适配，原版画面仍在还原中。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken

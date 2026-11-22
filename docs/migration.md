@@ -6,8 +6,8 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `impacts/ground-slam` | Next | Use the verified shared actor-relative layer playback. Preserve the upstream back and front passes while porting the cracks, shock fronts, dust and debris. Compare seed 5 at 30 FPS and check actor overlap. |
-| `impacts/hit-flash` | Blocked on shared actor masks | Add sprite mask, recolor and outline support, then verify the white and red beats on an actor. |
+| Shared actor masks for `impacts/hit-flash` | Next | Inspect upstream sprite reads. Add reusable support for recoloring and outlining the actor's current sprite silhouette, then verify and commit the shared capability. |
+| `impacts/hit-flash` | Blocked on shared actor masks | After mask support lands, port the effect and verify the white and red beats on an actor. |
 | `moves/fireball-throw` | Playable adaptation | Compare the charge and blast to upstream and record remaining differences. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
@@ -35,12 +35,13 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 
 ## Latest checkpoint
 
-**5 / 244 verified** in Unity as of 2026-11-22. Ground Slam is next.
+**6 / 244 verified** in Unity as of 2026-11-22. Shared actor masks for Hit Flash are next.
 
 Unity 2022.3.62f3 batch validation passed for Lower anchor snapshots, Middle passes on opposite sides of a caster's sorting group, launch from a moving caster, Upper impacts following separate targets, and stop cleanup. Full, Simplified and Off keep the same duration, and Off creates no sprite surfaces. The imported **Layered Fireball** Demo compiled. Visual Play Mode review of the overlap remains open. Fireball Throw still needs upstream visual comparison before it counts as a verified port.
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `impacts/ground-slam` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 5, 288 × 208, foot pivot (144, 164), 30 FPS. All 96 playback frames matched upstream alpha and RGB differed by at most one 8-bit level. Full and Simplified reproduced the same frames after seeking backward and forward. Batch validation checked both passes around the actor's sorting order and the contact position after the actor moved. Simplified keeps the crater, cracks, arcs, shock fronts and flash. Off creates no surfaces, and all qualities complete at 3.2 seconds. The in-editor visual overlap check remains open in the `Ground Slam` Demo. | [Comparison](media/ground-slam-comparison.png) · [Unity animation](media/ground-slam.gif) |
 | `impacts/crit-hit` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 3, 216 × 136, pivot (84, 106), 30 FPS. Alpha matched all 27 playback frames and RGB differed by at most one 8-bit level. Backward seeks reproduced the same frames. Simplified keeps the starburst, ring and flare. Off uses no surface. All qualities last 0.9 seconds at default speed. Parry remained pixel-identical across 30 frames in both Full and Simplified after extracting shared code. | [Comparison](media/crit-hit-comparison.png) · [Unity animation](media/crit-hit.gif) |
 | `impacts/blunt-hit` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 9, 128 × 88, pivot (64, 72), 30 FPS. Alpha matched across all 27 playback frames. Six pixel samples differed by two 8-bit RGB levels, and all other samples differed by at most one. Re-seeking reproduced the same frames for seeds 9, 17 and 52. Simplified keeps the flash, wedges and glow and skips dust and clods. Off uses no surface. All three qualities last 0.9 seconds at default speed. | [Comparison](media/blunt-hit-comparison.png) · [Unity animation](media/blunt-hit.gif) |
 | `impacts/parry` | Unity 2022.3.62f3 package validation and imported Demo compilation passed. Seed 11, 200 × 112, pivot (100, 96), 30 FPS. All 30 playback frames matched upstream alpha, and RGB differed by at most one 8-bit level. Backward seeks reproduced the captured frames. Simplified keeps the blade flash, star and ring. Off uses no surface. All three quality levels last one second at default speed. | [Comparison](media/parry-comparison.png) · [Unity animation](media/parry.gif) |
@@ -142,7 +143,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [x] `impacts/blunt-hit`
 - [ ] `impacts/bullet-impact`
 - [x] `impacts/crit-hit`
-- [ ] `impacts/ground-slam`
+- [x] `impacts/ground-slam`
 - [ ] `impacts/heavy-landing`
 - [ ] `impacts/hit-flash`
 - [x] `impacts/hit-spark`

@@ -31,6 +31,9 @@ namespace PixelFx
             }
         }
 
+        internal static double At(int x, int y, int seed) =>
+            Hash(Hash(Hash(0x9e3779b9, x), y), seed) / 4294967296.0;
+
         internal double Range(double a, double b)
         {
             unchecked

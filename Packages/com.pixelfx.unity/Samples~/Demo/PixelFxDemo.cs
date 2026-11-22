@@ -37,7 +37,10 @@ namespace PixelFx.Samples
                 current = player.Play(variant, Context());
             }
             GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
             if (GUILayout.Button("Layered Fireball")) PlayLayeredFireball();
+            if (GUILayout.Button("Ground Slam")) PlayGroundSlam();
+            GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
 
@@ -51,12 +54,7 @@ namespace PixelFx.Samples
         private void PlayLayeredFireball()
         {
             current?.Stop();
-            if (caster == null)
-            {
-                CreateActorSprite();
-                caster = CreateActor("Caster A", new Color32(111, 188, 240, 255), 10);
-                target = CreateActor("Target B", new Color32(138, 211, 149, 255), 20);
-            }
+            EnsureActors();
             caster.enabled = target.enabled = true;
             layeredTime = 0;
             MoveActors();
@@ -70,9 +68,31 @@ namespace PixelFx.Samples
             current.Completed += _ => HideActors();
         }
 
+        private void PlayGroundSlam()
+        {
+            current?.Stop();
+            EnsureActors();
+            caster.enabled = true;
+            target.enabled = false;
+            caster.transform.position = transform.position + new Vector3(3.3f, 1, 0);
+            current = player.Play(PixelFxLibrary.GroundSlam, context: new PixelFxContext
+            {
+                Binding = new PixelFxActorBinding(caster, PixelFxLayer.Middle, follow: false)
+            });
+            current.Completed += _ => HideActors();
+        }
+
+        private void EnsureActors()
+        {
+            if (caster != null) return;
+            CreateActorSprite();
+            caster = CreateActor("Caster A", new Color32(111, 188, 240, 255), 10);
+            target = CreateActor("Target B", new Color32(138, 211, 149, 255), 20);
+        }
+
         private void Update()
         {
-            if (caster == null || !caster.enabled) return;
+            if (caster == null || !caster.enabled || !target.enabled) return;
             layeredTime += Time.deltaTime;
             MoveActors();
         }

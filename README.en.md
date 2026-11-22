@@ -2,7 +2,7 @@
 
 [简体中文](README.md) · **English**
 
-Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Parry, Blunt Hit, Critical Hit, Fireball Throw, and the original Shuriken.
+Procedural pixel art effects for Unity. The package includes Heavy Cleave, Hit Spark, Parry, Blunt Hit, Critical Hit, Ground Slam, Fireball Throw, and the original Shuriken.
 
 The sample project uses **Unity 2022.3.62f3**, which was used to verify installation, compilation, and editor preview.
 
@@ -67,6 +67,8 @@ Flight speed is in Unity units per effect second. Settings and target positions 
 
 Open **Tools > PixelFX > Open Demo**, enter Play Mode, and click **Layered Fireball**. The far arc passes behind caster A, the near arc passes in front, and the explosion follows target B's hit anchor in front of B.
 
+Click **Ground Slam** in the same demo to see an impact at the actor's feet. Bind with `new PixelFxActorBinding(actor, PixelFxLayer.Middle, follow: false)` to snapshot the foot position, draw the cracks, dust column and far arc behind the actor, and draw the near arc and rocks in front.
+
 Bind a character's `SpriteRenderer` with `PixelFxActorBinding`. Use `PixelFxContext.Binding` for a one-shot, `CastBinding` for the cast and each `PixelFxHit.Binding` for its impact. `Lower` defaults to the feet and draws behind the actor. `Middle` defaults to the body center and uses the effect's authored back and front passes. `Upper` defaults to the head and draws in front of the actor. Supply an anchor `Transform` to place a foreground impact at the body. Bindings follow the actor by default. Set `follow: false` to use the position at playback start. See the [authoring guide](docs/authoring.md#actor-relative-effect-layers).
 
 ## Migration progress
@@ -86,7 +88,7 @@ The measured playback samples allocated 0 managed bytes after initialization. Th
 
 ### Upstream checklist
 
-The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Parry, Blunt Hit, and Critical Hit passed the upstream visual comparison (**5 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif)
+The migration targets `patch-gg/pixelfx@5294518`. Heavy Cleave, Hit Spark, Parry, Blunt Hit, Critical Hit, and Ground Slam passed the upstream visual comparison (**6 / 244**). Fireball Throw is a gameplay adaptation, and Shuriken is original. [Migration TODO and resume steps](docs/migration.md#resume-here) · [Hit Spark animation](docs/media/hit-spark.gif) · [Parry animation](docs/media/parry.gif) · [Blunt Hit animation](docs/media/blunt-hit.gif) · [Critical Hit animation](docs/media/crit-hit.gif) · [Ground Slam animation](docs/media/ground-slam.gif)
 
 - [x] Runtime playback, library preview, serialized variants, and quality levels
 - [x] Heavy Cleave and original Shuriken

@@ -42,7 +42,7 @@ namespace PixelFx
             Quality = context.Quality ?? PixelFxPlayer.DefaultQuality;
             binding = context.Binding;
             castBinding = context.CastBinding;
-            anchor = binding.PositionOr(context.Position);
+            anchor = binding.PositionOr(context.Position, definition.DefaultActorAnchor);
             Vector2 direction = context.Direction.sqrMagnitude > 0 ? context.Direction.normalized : Vector2.right;
             angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
             if (id == PixelFxLibrary.FireballThrow)
@@ -63,7 +63,7 @@ namespace PixelFx
             out Vector3 position, out float angle, out float strength)
         {
             localTime = seconds * Settings.playbackSpeed;
-            position = binding.Follow ? binding.PositionOr(anchor) : anchor;
+            position = binding.Follow ? binding.PositionOr(anchor, Definition.DefaultActorAnchor) : anchor;
             angle = this.angle;
             strength = 1;
             stage = PixelFxStage.Single;

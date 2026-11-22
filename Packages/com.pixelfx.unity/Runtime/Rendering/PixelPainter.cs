@@ -60,16 +60,21 @@ namespace PixelFx
             color[y * width + x] = ink;
         }
 
-        internal void Line(double x0, double y0, double x1, double y1, uint ink, double alpha = 1)
+        internal void Line(double x0, double y0, double x1, double y1, uint ink, double alpha = 1) =>
+            Line(x0, y0, x1, y1, (ink, alpha), static (_, style) => style);
+
+        internal void Line<T>(double x0, double y0, double x1, double y1, T state,
+            Func<double, T, (uint Ink, double Alpha)> sample)
         {
             int x = (int)Floor(x0) + originX, y = (int)Floor(y0) + originY;
             int endX = (int)Floor(x1) + originX, endY = (int)Floor(y1) + originY;
             int dx = Abs(endX - x), dy = -Abs(endY - y);
             int stepX = x < endX ? 1 : -1, stepY = y < endY ? 1 : -1;
-            int error = dx + dy;
+            int error = dx + dy, length = Max(1, Max(dx, -dy)), index = 0;
             while (true)
             {
-                Put(x, y, ink, alpha);
+                var pixel = sample(index++ / (double)length, state);
+                Put(x, y, pixel.Ink, pixel.Alpha);
                 if (x == endX && y == endY) return;
                 int twice = error * 2;
                 if (twice >= dy) { error += dy; x += stepX; }
