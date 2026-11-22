@@ -16,7 +16,7 @@ The sample project uses **Unity 2022.3.62f3**, which was used to verify installa
 
 ## Open the demo
 
-Open the repository root in Unity. Choose **Tools > PixelFX > Open Demo**. If prompted, let Unity import and compile the sample, then open the menu again. Enter Play Mode and use the buttons to switch effects. If you previously imported the sample, reimport **PixelFX Demo** from the Package Manager to load new buttons. The original **Open Heavy Cleave Demo** also remains available.
+Open the repository root in Unity and choose **Tools > PixelFX > Open Demo**. The menu imports the sample and offers **Update Demo Script** when the imported script differs from the package. After Unity compiles the script, open the menu again, enter Play Mode, and use the buttons to switch effects. The original **Open Heavy Cleave Demo** also remains available.
 
 For an existing project, use **Window > Package Manager > + > Add package from git URL**, then enter:
 

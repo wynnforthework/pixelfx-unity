@@ -1,3 +1,5 @@
+using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEditor.PackageManager.UI;
 using UnityEditor.SceneManagement;
@@ -8,19 +10,42 @@ namespace PixelFx.Editor
 {
     internal static class PixelFxDemoMenu
     {
+        private const string DemoScript = "PixelFxDemo.cs";
+
         [MenuItem("Tools/PixelFX/Open Demo")]
         private static void Open()
         {
             var package = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(PixelFxPlayer).Assembly);
+            var sample = Sample.FindByPackage(package.name, package.version)
+                .Single(entry => entry.displayName == "PixelFX Demo");
             var type = System.Type.GetType("PixelFx.Samples.PixelFxDemo, Assembly-CSharp");
+            string importedScript = Path.Combine(sample.importPath, DemoScript);
+            if (!File.Exists(importedScript) && type == null)
+            {
+                if (!sample.Import(Sample.ImportOptions.None))
+                    throw new System.InvalidOperationException("Could not import the PixelFX Demo sample.");
+                ShowCompilationNotice("Sample imported.");
+                return;
+            }
+
+            string packageScript = Path.Combine(sample.resolvedPath, DemoScript);
+            if (File.Exists(importedScript) && DemoScriptDiffers(packageScript, importedScript))
+            {
+                int choice = EditorUtility.DisplayDialogComplex("PixelFX Demo",
+                    "The imported demo script differs from the package. Updating replaces PixelFxDemo.cs, including any local edits to it.",
+                    "Update Demo Script", "Cancel", "Open Existing Demo");
+                if (choice == 1) return;
+                if (choice == 0)
+                {
+                    UpdateDemoScript(packageScript, importedScript);
+                    ShowCompilationNotice("Demo script updated.");
+                    return;
+                }
+            }
+
             if (type == null)
             {
-                foreach (var sample in Sample.FindByPackage(package.name, package.version))
-                {
-                    if (!sample.Import(Sample.ImportOptions.None))
-                        throw new System.InvalidOperationException("Could not import PixelFX samples.");
-                }
-                EditorUtility.DisplayDialog("PixelFX Demo", "Sample imported. Open this menu again after Unity compiles it.", "OK");
+                ShowCompilationNotice("Waiting for the demo component.");
                 return;
             }
 
@@ -35,5 +60,17 @@ namespace PixelFx.Editor
             new GameObject("PixelFX Demo", type);
             EditorSceneManager.MarkSceneDirty(scene);
         }
+
+        internal static bool DemoScriptDiffers(string packageScript, string importedScript) =>
+            !File.ReadLines(packageScript).SequenceEqual(File.ReadLines(importedScript));
+
+        internal static void UpdateDemoScript(string packageScript, string importedScript)
+        {
+            File.Copy(packageScript, importedScript, overwrite: true);
+            AssetDatabase.Refresh();
+        }
+
+        private static void ShowCompilationNotice(string message) =>
+            EditorUtility.DisplayDialog("PixelFX Demo", message + " Open this menu again after Unity compiles it.", "OK");
     }
 }
