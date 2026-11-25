@@ -55,6 +55,7 @@ namespace PixelFx
         public const string Blessing = "holy/blessing";
         public const string Halo = "holy/halo";
         public const string Heal = "holy/heal";
+        public const string HealingRing = "holy/heal-aoe";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -68,6 +69,16 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(HealingRing, "Healing Ring", "Holy", 6, 0.6f, HealingRingEffect.Duration,
+                (HealingRingEffect.Width, HealingRingEffect.Height, HealingRingEffect.OriginX, HealingRingEffect.OriginY),
+                HealingRingEffect.CreateRenderer,
+                0x0e2a24, 0x14472f, 0x1d6e3a, 0x2f9a45, 0x5cc654, 0xa0e46c, 0xdcffb4, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = HealingRingEffect.CreateLayerRenderer,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(Heal, "Heal", "Holy", 2, 0.6f, HealEffect.Duration,
                 (HealEffect.Width, HealEffect.Height, HealEffect.OriginX, HealEffect.OriginY),
                 HealEffect.CreateRenderer,

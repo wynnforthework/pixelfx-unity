@@ -46,6 +46,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Blessing")) PlayActorBuff(PixelFxLibrary.Blessing);
             if (GUILayout.Button("Halo")) PlayActorBuff(PixelFxLibrary.Halo, PixelFxLayer.Upper);
             if (GUILayout.Button("Heal")) PlayActorBuff(PixelFxLibrary.Heal);
+            if (GUILayout.Button("Healing Ring")) PlayActorBuff(PixelFxLibrary.HealingRing);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
