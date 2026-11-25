@@ -2,7 +2,7 @@
 
 **简体中文** · [English](README.en.md)
 
-Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Hit Flash（受击闪白）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Ground Slam（震地）、Fireball（火球）、Fireball Throw（火球投掷）、Spell Charge（法术蓄力）、Small Explosion（小型爆炸）、Magic Circle Cast（魔法阵施法）、Fire Ring（火圈）、Divine Shield（神圣护盾）、Blessing（祝福）、Halo（光环）、Heal（治疗）、Healing Ring（范围治疗）、Holy Pillar（圣光柱）和原创 Shuriken（手里剑）。
+Unity 程序化像素特效包，内置 Heavy Cleave（重劈）、Hit Spark（命中火花）、Hit Flash（受击闪白）、Parry（招架）、Blunt Hit（钝击）、Critical Hit（暴击）、Ground Slam（震地）、Fireball（火球）、Fireball Throw（火球投掷）、Spell Charge（法术蓄力）、Small Explosion（小型爆炸）、Magic Circle Cast（魔法阵施法）、Fire Ring（火圈）、Divine Shield（神圣护盾）、Blessing（祝福）、Halo（光环）、Heal（治疗）、Healing Ring（范围治疗）、Holy Pillar（圣光柱）、Smite（圣击）和原创 Shuriken（手里剑）。
 
 样例工程使用 **Unity 2022.3.62f3**，安装、编译和编辑器预览均在此版本验证。
 
@@ -86,7 +86,7 @@ public sealed class FireballExample : MonoBehaviour
 
 ## 移植进度
 
-移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **19 / 244**，包括 Heavy Cleave、Hit Spark、Hit Flash、Parry、Blunt Hit、Critical Hit、Ground Slam、Spell Charge、Fireball、Small Explosion、Fireball Throw、Magic Circle Cast、Fire Ring、Divine Shield、Blessing、Halo、Heal、Healing Ring 和 Holy Pillar。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Hit Flash 动图](docs/media/hit-flash.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif) · [Spell Charge 动图](docs/media/spell-charge.gif) · [Fireball 动图](docs/media/fireball.gif) · [Small Explosion 动图](docs/media/small-explosion.gif) · [Magic Circle Cast 动图](docs/media/magic-circle-cast.gif) · [Fire Ring 动图](docs/media/fire-ring.gif) · [Divine Shield 动图](docs/media/divine-shield.gif) · [Blessing 动图](docs/media/blessing.gif) · [Halo 动图](docs/media/halo.gif) · [Heal 动图](docs/media/heal.gif) · [Healing Ring 动图](docs/media/healing-ring.gif) · [Holy Pillar 动图](docs/media/holy-pillar.gif)
+移植基准为 `patch-gg/pixelfx@5294518`。已通过上游画面对照验收的特效为 **20 / 244**，包括 Heavy Cleave、Hit Spark、Hit Flash、Parry、Blunt Hit、Critical Hit、Ground Slam、Spell Charge、Fireball、Small Explosion、Fireball Throw、Magic Circle Cast、Fire Ring、Divine Shield、Blessing、Halo、Heal、Healing Ring、Holy Pillar 和 Smite。Shuriken 为原创。[移植 TODO 与续接步骤](docs/migration.md#resume-here) · [Hit Spark 动图](docs/media/hit-spark.gif) · [Hit Flash 动图](docs/media/hit-flash.gif) · [Parry 动图](docs/media/parry.gif) · [Blunt Hit 动图](docs/media/blunt-hit.gif) · [Critical Hit 动图](docs/media/crit-hit.gif) · [Ground Slam 动图](docs/media/ground-slam.gif) · [Spell Charge 动图](docs/media/spell-charge.gif) · [Fireball 动图](docs/media/fireball.gif) · [Small Explosion 动图](docs/media/small-explosion.gif) · [Magic Circle Cast 动图](docs/media/magic-circle-cast.gif) · [Fire Ring 动图](docs/media/fire-ring.gif) · [Divine Shield 动图](docs/media/divine-shield.gif) · [Blessing 动图](docs/media/blessing.gif) · [Halo 动图](docs/media/halo.gif) · [Heal 动图](docs/media/heal.gif) · [Healing Ring 动图](docs/media/healing-ring.gif) · [Holy Pillar 动图](docs/media/holy-pillar.gif) · [Smite 动图](docs/media/smite.gif)
 
 - [x] 运行时播放、特效库预览、变体持久化和质量档
 - [x] 移植 Heavy Cleave，制作原创 Shuriken
