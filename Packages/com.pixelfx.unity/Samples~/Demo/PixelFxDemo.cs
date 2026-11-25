@@ -50,6 +50,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Holy Pillar")) PlayActorBuff(PixelFxLibrary.HolyPillar);
             if (GUILayout.Button("Smite")) PlayActorBuff(PixelFxLibrary.Smite);
             if (GUILayout.Button("Sunburst")) Play(PixelFxLibrary.Sunburst);
+            if (GUILayout.Button("Feather Burst")) PlayActorBuff(PixelFxLibrary.FeatherBurst);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }

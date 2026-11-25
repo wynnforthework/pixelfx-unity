@@ -59,6 +59,7 @@ namespace PixelFx
         public const string HolyPillar = "holy/holy-pillar";
         public const string Smite = "holy/smite";
         public const string Sunburst = "holy/sunburst";
+        public const string FeatherBurst = "holy/feather-burst";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -72,6 +73,16 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(FeatherBurst, "Feather Burst", "Holy", 4, 0.33f, FeatherBurstEffect.Duration,
+                (FeatherBurstEffect.Width, FeatherBurstEffect.Height, FeatherBurstEffect.OriginX, FeatherBurstEffect.OriginY),
+                FeatherBurstEffect.CreateRenderer,
+                0x4a4560, 0x7a7494, 0xaaa5c2, 0xd6d3e6, 0xf4f3fa, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Middle,
+                CreateLayerRenderer = FeatherBurstEffect.CreateLayerRenderer,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(Sunburst, "Sunburst", "Holy", 3, 0.6f, SunburstEffect.Duration,
                 (SunburstEffect.Width, SunburstEffect.Height, SunburstEffect.OriginX, SunburstEffect.OriginY),
                 SunburstEffect.CreateRenderer,
