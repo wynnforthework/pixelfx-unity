@@ -17,14 +17,7 @@ namespace PixelFx
             internal bool Back;
         }
 
-        private struct Feather
-        {
-            internal double X, Y, Vx, Vy, Angle, Length, Width, Life, MaxLife, Sink, Delay;
-            internal double Side, Phase, Frequency, Amplitude, Spin, Tilt, Age;
-            internal bool Back, Landed;
-        }
-
-        private readonly Feather[] initialFeathers = new Feather[6], feathers = new Feather[6];
+        private readonly FeatherParticle[] initialFeathers = new FeatherParticle[6], feathers = new FeatherParticle[6];
         private readonly List<Particle> particles = new List<Particle>(96);
         private double hitAge = double.PositiveInfinity, shutAge = double.PositiveInfinity, liftAge = double.PositiveInfinity;
 
@@ -32,21 +25,14 @@ namespace PixelFx
         {
             for (int i = 0; i < feathers.Length; i++)
             {
-                var f = new Feather
+                var f = new FeatherParticle
                 {
                     X = random.Range(-46, 46), Y = random.Range(-150, -100),
                     Vx = random.Range(-8, 8), Vy = random.Range(0, 8), Angle = random.Range(-0.4, 0.4),
                     Length = random.Range(7, 9), Width = random.Range(1.9, 2.3), Life = random.Range(1.4, 1.7),
                     Sink = random.Range(26, 36), Back = i % 3 == 0, Delay = Hit + 0.1 + i * 0.16 + random.Range(0, 0.08),
-                    Side = Chance(0.5) ? -1 : 1, Phase = random.Range(0, Tau), Frequency = random.Range(3.2, 4.6),
-                    Amplitude = random.Range(6, 11),
                 };
-                // Upstream Feathers.add samples a default sink before applying the authored value.
-                random.Range(14, 24);
-                f.Spin = random.Range(-9, 9);
-                f.Tilt = random.Range(-0.35, 0.35);
-                f.MaxLife = f.Life;
-                initialFeathers[i] = feathers[i] = f;
+                initialFeathers[i] = feathers[i] = FeatherParticle.Initialize(f, ref random);
             }
         }
 
@@ -173,44 +159,13 @@ namespace PixelFx
 
         private void TickFeathers()
         {
-            for (int i = 0; i < feathers.Length; i++)
-            {
-                ref var f = ref feathers[i];
-                if (f.Delay > 0)
-                {
-                    f.Delay -= Step;
-                    continue;
-                }
-                if (f.Life <= 0 || (f.Life -= Step) <= 0) continue;
-                f.Age += Step;
-                double flat = Floor(f.Angle / PI + 0.5) * PI;
-                if (f.Landed)
-                {
-                    f.Angle += (flat - f.Angle) * Min(1, Step * 10);
-                    continue;
-                }
-
-                f.Vx -= f.Vx * 3.4 * Step;
-                f.Vy -= f.Vy * 3.4 * Step;
-                double drift = Smooth(0.1, 0.6, f.Age), phase = f.Age * f.Frequency + f.Phase;
-                double sine = Sin(phase), cosine = Cos(phase);
-                f.X += (f.Vx + sine * f.Amplitude * drift * 0.9) * Step;
-                f.Y += (f.Vy + f.Sink * drift * (cosine * cosine * 1.5 - 0.2)) * Step;
-                double rest = flat + f.Tilt + sine * 0.6;
-                f.Angle += f.Spin * Step * (1 - drift) + (rest - f.Angle) * Min(1, Step * 5 * drift);
-                if (f.Y >= -0.5)
-                {
-                    f.Y = -0.5;
-                    f.Landed = true;
-                    f.Life = Min(f.Life, 0.6);
-                }
-            }
+            for (int i = 0; i < feathers.Length; i++) FeatherParticle.Tick(ref feathers[i], Step, 0);
         }
 
         private void DrawParticles(bool back)
         {
             foreach (var f in feathers)
-                if (f.Delay <= 0 && f.Life > 0 && f.Back == back) DrawFeather(f);
+                if (f.Delay <= 0 && f.Life > 0 && f.Back == back) FeatherParticle.Draw(painter, f, colors, 2);
 
             foreach (var q in particles)
             {
@@ -263,41 +218,6 @@ namespace PixelFx
                 painter.Line(x - ux * length * 0.45, y - uy * length * 0.45, x, y, head);
                 painter.Glow(x, y, 3, head, 0.45 * k);
             }
-        }
-
-        private void DrawFeather(Feather f)
-        {
-            double alpha = Min(1, Min(f.Life / 0.45, f.Age / 0.06));
-            if (alpha > 0.02)
-            {
-                double ca = Cos(f.Angle), sa = Sin(f.Angle);
-                double x = f.X - ca * f.Length / 2, y = f.Y - sa * f.Length / 2;
-                double endX = x + ca * f.Length, endY = y + sa * f.Length, pad = f.Width + 1.2;
-                bool hot = f.Age < 0.06;
-                uint edge = colors[hot ? 5 : 3], lead = hot ? White : colors[6];
-                uint first = hot ? White : colors[6], second = hot ? White : colors[5], third = colors[hot ? 6 : 4];
-
-                for (int py = (int)Floor(Min(y, endY) - pad); py <= Ceiling(Max(y, endY) + pad); py++)
-                for (int px = (int)Floor(Min(x, endX) - pad); px <= Ceiling(Max(x, endX) + pad); px++)
-                {
-                    double dx = px + 0.5 - x, dy = py + 0.5 - y, u = (dx * ca + dy * sa) / f.Length;
-                    if (u < 0 || u > 1.05) continue;
-                    double v = (-dx * sa + dy * ca) * f.Side, av = Abs(v);
-                    double width = f.Width * Sqrt(Clamp((u - 0.2) / 0.22))
-                        * Sqrt(Max(0, 1 - Pow(Max(0, (u - 0.55) / 0.47), 2)));
-                    double limit = v < 0 ? width * 0.42 : width, fade = u < 0.72 ? 1 : 1 - (u - 0.72) * 1.6;
-                    if (av < 0.5 && u < 0.9) painter.Dot(px, py, u < 0.5 ? White : first, alpha);
-                    else if (av > limit + 0.05 || width < 0.5) continue;
-                    else if (limit - av < 1)
-                    {
-                        if (v > 0) painter.Dot(px, py, u > 0.85 ? third : edge, alpha * fade);
-                        else painter.Dot(px, py, lead, alpha);
-                    }
-                    else if (u < 0.72) painter.Dot(px, py, u < 0.38 ? first : second, alpha);
-                    else painter.BlendPixel(px, py, third, alpha * fade);
-                }
-            }
-            painter.Glow(f.X, f.Y, 4 + f.Length * 0.5, colors[5], 0.22 * alpha * (0.4 + 0.6 * f.Life / f.MaxLife));
         }
     }
 }
