@@ -54,6 +54,7 @@ namespace PixelFx
         public const string DivineShield = "holy/divine-shield";
         public const string Blessing = "holy/blessing";
         public const string Halo = "holy/halo";
+        public const string Heal = "holy/heal";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -67,6 +68,17 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(Heal, "Heal", "Holy", 2, 0.6f, HealEffect.Duration,
+                (HealEffect.Width, HealEffect.Height, HealEffect.OriginX, HealEffect.OriginY),
+                HealEffect.CreateRenderer,
+                0x3d2027, 0x7d3f35, 0xc97a4a, 0xf2b46a, 0xffd994, 0xfff0cf, 0xfffaf2, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = HealEffect.CreateLayerRenderer,
+                UsesProjectedActorMask = true,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(Halo, "Halo", "Holy", 5, 8f / 30, HaloEffect.Duration,
                 (HaloEffect.Width, HaloEffect.Height, HaloEffect.OriginX, HaloEffect.OriginY),
                 HaloEffect.CreateRenderer,
