@@ -22,7 +22,7 @@ namespace PixelFx.Samples
         private void OnGUI()
         {
             if (player == null) return;
-            GUILayout.BeginArea(new Rect(12, 12, Screen.width - 24, 72));
+            GUILayout.BeginArea(new Rect(12, 12, Screen.width - 24, 96));
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Heavy Cleave")) Play(PixelFxLibrary.HeavyCleave);
             if (GUILayout.Button("Hit Spark")) Play(PixelFxLibrary.HitSpark);
@@ -46,11 +46,14 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Blessing")) PlayActorBuff(PixelFxLibrary.Blessing);
             if (GUILayout.Button("Halo")) PlayActorBuff(PixelFxLibrary.Halo, PixelFxLayer.Upper);
             if (GUILayout.Button("Heal")) PlayActorBuff(PixelFxLibrary.Heal);
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
             if (GUILayout.Button("Healing Ring")) PlayActorBuff(PixelFxLibrary.HealingRing);
             if (GUILayout.Button("Holy Pillar")) PlayActorBuff(PixelFxLibrary.HolyPillar);
             if (GUILayout.Button("Smite")) PlayActorBuff(PixelFxLibrary.Smite);
             if (GUILayout.Button("Sunburst")) Play(PixelFxLibrary.Sunburst);
             if (GUILayout.Button("Feather Burst")) PlayActorBuff(PixelFxLibrary.FeatherBurst);
+            if (GUILayout.Button("Resurrection")) PlayActorBuff(PixelFxLibrary.Resurrection);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }

@@ -60,6 +60,7 @@ namespace PixelFx
         public const string Smite = "holy/smite";
         public const string Sunburst = "holy/sunburst";
         public const string FeatherBurst = "holy/feather-burst";
+        public const string Resurrection = "holy/resurrection";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -73,6 +74,17 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(Resurrection, "Resurrection", "Holy", 5, 1.8f, ResurrectionEffect.Duration,
+                (ResurrectionEffect.Width, ResurrectionEffect.Height, ResurrectionEffect.OriginX, ResurrectionEffect.OriginY),
+                ResurrectionEffect.CreateRenderer,
+                0x3b1d2a, 0x7a3a2c, 0xc4652e, 0xf0a040, 0xffd25e, 0xfff0a0, 0xfffbe0, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = ResurrectionEffect.CreateLayerRenderer,
+                UsesProjectedActorMask = true,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(FeatherBurst, "Feather Burst", "Holy", 4, 0.33f, FeatherBurstEffect.Duration,
                 (FeatherBurstEffect.Width, FeatherBurstEffect.Height, FeatherBurstEffect.OriginX, FeatherBurstEffect.OriginY),
                 FeatherBurstEffect.CreateRenderer,
