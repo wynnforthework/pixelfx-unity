@@ -6,7 +6,7 @@ Pinned upstream revision [patch-gg/pixelfx@5294518](https://github.com/patch-gg/
 
 | Effect or dependency | Status | Next action |
 | --- | --- | --- |
-| `holy/sunburst` | Next | Inspect the rotating rays, corona and glints. Record the center anchor and draw order, then verify one four-second cycle, backward seeking and all three quality levels. |
+| `holy/feather-burst` | Next | Inspect the feather burst and its shared feather simulation. Record the anchor and draw passes, then verify seeded frames and all three quality levels. |
 
 1. Read this queue and run `git status --short` at the Unity project root. Check the effect folder and existing diffs before resuming an in-progress entry.
 2. Use a checkout of the pinned upstream revision. The source for each ID is `src/fx/<effect-id>.js`. Follow the [authoring guide](authoring.md) and [repository skill](../skills/pixelfx-unity/SKILL.md). Record the effect's layering requirements in the active queue entry before coding.
@@ -36,13 +36,14 @@ Use the [Lower, Middle and Upper authoring convention](authoring.md#actor-relati
 | `holy/heal-aoe` | Use a world ground point or a bound actor's foot anchor. Middle draws the ground wash, far crest, far plus signs and their particles behind the sorting reference. The seed, release flash and jet, near crest, near plus signs and foreground particles draw in front. Honor follow or snapshot placement. The effect needs no actor pixels and healing remains gameplay-owned. |
 | `holy/holy-pillar` | Use a world ground point or a bound actor's foot anchor. Middle draws the shaft fan, far sigil and rear particles behind the sorting reference. The sun, near sigil, timed flashes, lit dust and foreground particles draw in front. Honor follow or snapshot placement. |
 | `holy/smite` | Use a world ground point or a bound actor's foot anchor. Middle draws cracks, crater, smoke and the far ground wave behind the sorting reference. The mark, falling bolt, afterimage, near ground wave, air shock, chips and impact flash draw in front. Honor follow or snapshot placement. |
+| `holy/sunburst` | Use a world point or a bound actor's center. The core, rays and glints form one pass without sprite sampling. Middle and Upper draw in front of the sorting reference and Lower draws behind it. Honor follow or snapshot placement. |
 | `moves/fireball-throw` | For the requested A-to-B acceptance case, the Middle cast ring follows A and the projectile follows its travel path. Each Upper impact follows its own target at its hit anchor for the full impact phase. Check with A and B moving and using different sorting orders. This is a Unity acceptance case for stage-specific binding and sorting. |
 | `impacts/hit-flash` | Draw the recolor, outline and hit accents in front of the hit actor. Use the sprite pivot for the mask and the chest for the hit accents. Follow the renderer and its current sprite throughout the effect. The game owns the hit pose, hit stop and camera shake. |
 | `melee/heavy-cleave` | Standalone frames are verified. Upstream places the far and near shock-ring halves around the fighter. Revisit actor-overlap playback once shared layering is available. |
 
 ## Latest checkpoint
 
-**20 / 244 verified** in Unity. Smite passed the seeded frame comparison and Middle sorting checks. Interactive Play Mode checks for Smite, Holy Pillar, Healing Ring, Heal, Halo, Blessing, Divine Shield, Fire Ring, Magic Circle Cast, Small Explosion, Ground Slam and Hit Flash remain open.
+**21 / 244 verified** in Unity. Sunburst passed the seeded frame comparison and center-anchor playback checks. Interactive Play Mode checks for Sunburst, Smite, Holy Pillar, Healing Ring, Heal, Halo, Blessing, Divine Shield, Fire Ring, Magic Circle Cast, Small Explosion, Ground Slam and Hit Flash remain open.
 
 Shared actor masks passed `PixelFx.Editor.PixelFxValidation.Run` in Unity 2022.3.62f3. The check covers source RGB and nonzero alpha, a four-neighbor outline, sprite-frame changes on the same sheet, both flips around an off-center pivot, conversion from sprite PPU to painter PPU, and clearing an unavailable mask. The sprites in the check use a readable, unsplit sheet.
 
@@ -62,6 +63,7 @@ Full and Simplified reproduced all 205 captured frames after a forward and backw
 
 | Effect | Verification | Evidence |
 | --- | --- | --- |
+| `holy/sunburst` | Unity 2022.3.62f3 package validation, library thumbnail, built-in asset playback and Demo compilation passed. At seed 3 and 30 FPS, all 120 Full frames matched upstream alpha on the 128 × 128 canvas with center pivot (64, 64). RGB differed by at most one 8-bit level. Full and Simplified reproduced all frames on backward seek and returned to the first frame at the four-second boundary. Simplified retains the core, corona, rays and traveling glints and skips random outer twinkles. Batch playback verified a single foreground surface with an Upper binding, following and fixed center anchors, upright rendering and cleanup. All three qualities play one four-second cycle at default speed. Off creates no surfaces. Interactive Play Mode review remains open in the Sunburst Demo. | [Comparison](media/sunburst-comparison.png) · [Animation](media/sunburst.gif) |
 | `holy/smite` | Unity 2022.3.62f3 package validation, library thumbnail, built-in asset playback and Demo compilation passed. At seed 9 and 30 FPS, all 84 Full frames matched upstream alpha on the 224 × 176 canvas with ground pivot (112, 148). RGB differed by at most one 8-bit level. Full and Simplified reproduced their frames on backward seek and ended transparent. Batch playback verified Middle sorting around a SortingGroup, fixed and following foot anchors, upright orientation, and cleanup on completion and stop. Simplified retains the mark, bolt, afterimage, shockwaves, cracks and impact flash while skipping decorative particles and chips. All qualities finish at 2.8 seconds at default speed. Off creates no surfaces. Interactive Play Mode review remains open in the Smite Demo. | [Comparison](media/smite-comparison.png) · [Animation](media/smite.gif) · [Layer composite](media/smite-layers.png) |
 | `holy/holy-pillar` | Unity 2022.3.62f3 package validation, library thumbnail, built-in asset playback and Demo compilation passed. At seed 3 and 30 FPS, all 105 Full frames matched upstream alpha on the 192 × 232 canvas with ground pivot (96, 204). RGB differed by at most one 8-bit level. Full and Simplified reproduced their frames on backward seek and ended transparent. Batch playback verified Middle sorting around a SortingGroup, fixed and following foot anchors, upright orientation, and cleanup on completion and stop. Simplified keeps the sun, shaft fan, sigil and timed flashes and skips decorative particles, dust and feathers. All qualities finish at 3.5 seconds at default speed. Off creates no surfaces. Interactive Play Mode review remains open in the Holy Pillar Demo. | [Comparison](media/holy-pillar-comparison.png) · [Animation](media/holy-pillar.gif) · [Layer composite](media/holy-pillar-layers.png) |
 | `holy/heal-aoe` | Unity 2022.3.62f3 package validation, library thumbnail, built-in asset playback and Demo compilation passed. At seed 6 and 30 FPS, all 87 Full frames matched upstream alpha on the 256 × 136 canvas with foot pivot (128, 104). RGB differed by at most one 8-bit level. Full and Simplified reproduced all frames on backward seek and were transparent at the end. Batch playback verified Middle sorting around a SortingGroup, following and fixed foot anchors, upright rendering, natural completion and manual stop. Simplified keeps the seed, release flash and jet, ground wash, expanding ring and rising plus signs while skipping crest decorations and simulated particles. All qualities complete at 2.9 seconds at default speed. Off creates no surfaces. Interactive Play Mode review remains open in the Healing Ring Demo. | [Comparison](media/healing-ring-comparison.png) · [Animation](media/healing-ring.gif) · [Layer composite](media/healing-ring-layers.png) |
@@ -157,7 +159,7 @@ For byte comparisons, use upstream `renderFrames(...).frames[i].clear` RGBA data
 - [x] `holy/holy-pillar`
 - [ ] `holy/resurrection`
 - [x] `holy/smite`
-- [ ] `holy/sunburst`
+- [x] `holy/sunburst`
 
 ## ice
 

@@ -49,6 +49,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Healing Ring")) PlayActorBuff(PixelFxLibrary.HealingRing);
             if (GUILayout.Button("Holy Pillar")) PlayActorBuff(PixelFxLibrary.HolyPillar);
             if (GUILayout.Button("Smite")) PlayActorBuff(PixelFxLibrary.Smite);
+            if (GUILayout.Button("Sunburst")) Play(PixelFxLibrary.Sunburst);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }

@@ -58,6 +58,7 @@ namespace PixelFx
         public const string HealingRing = "holy/heal-aoe";
         public const string HolyPillar = "holy/holy-pillar";
         public const string Smite = "holy/smite";
+        public const string Sunburst = "holy/sunburst";
         public const string Shuriken = "original/shuriken";
         public const string HitSpark = "impacts/hit-spark";
         public const string HitFlash = "impacts/hit-flash";
@@ -71,6 +72,14 @@ namespace PixelFx
 
         public static IReadOnlyList<PixelFxDefinition> Effects { get; } = Array.AsReadOnly(new[]
         {
+            new PixelFxDefinition(Sunburst, "Sunburst", "Holy", 3, 0.6f, SunburstEffect.Duration,
+                (SunburstEffect.Width, SunburstEffect.Height, SunburstEffect.OriginX, SunburstEffect.OriginY),
+                SunburstEffect.CreateRenderer,
+                0x3b1d2a, 0x7a3a2c, 0xc4652e, 0xf0a040, 0xffd25e, 0xfff0a0, 0xfffbe0, 0xffffff)
+            {
+                DefaultActorAnchor = PixelFxLayer.Middle,
+                KeepUpright = true,
+            },
             new PixelFxDefinition(Smite, "Smite", "Holy", 9, 0.6f, SmiteEffect.Duration,
                 (SmiteEffect.Width, SmiteEffect.Height, SmiteEffect.OriginX, SmiteEffect.OriginY),
                 SmiteEffect.CreateRenderer,
