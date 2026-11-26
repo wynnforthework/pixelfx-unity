@@ -183,7 +183,7 @@ namespace PixelFx
                 switch (q.Kind)
                 {
                     case Kind.Flame:
-                        DrawPuff(q, k);
+                        FireDrawing.Puff(painter, x, y, k, q.Size, q.Seed, heat);
                         break;
                     case Kind.Smoke:
                         DrawSmoke(q, k);
@@ -219,25 +219,6 @@ namespace PixelFx
             painter.Line(q.X - dx, q.Y - dy, q.X - dx * 0.4, q.Y - dy * 0.4, k > 0.5 ? hot : heat[5]);
             painter.Line(q.X - dx * 0.45, q.Y - dy * 0.45, q.X, q.Y, hot);
             painter.Glow(q.X, q.Y, 3, hot, 0.45 * k);
-        }
-
-        private void DrawPuff(Particle q, double k)
-        {
-            double age = 1 - k;
-            int index = Min(7, (int)Floor(Min(0.999, Pow(age, 0.62) + q.Seed % 1 * 0.1) * 8));
-            double r = q.Size * (0.55 + 0.45 * Min(1, age * 7)) * (1 - age * 0.55);
-            uint color = heat[index];
-            if (index == 7)
-            {
-                painter.SoftDisc(q.X, q.Y, r, color, Min(1, k * 3) * 0.85, 0);
-                return;
-            }
-            painter.Circle(q.X, q.Y, r, heat[Min(8, index + 2)]);
-            painter.Circle(q.X - r * 0.16, q.Y - r * 0.22, r * 0.78, color);
-            if (r > 1.6) painter.Circle(q.X, q.Y - r * 0.9, r * 0.42, color);
-            if (index <= 3 && r > 1.8)
-                painter.Circle(q.X - r * 0.28, q.Y - r * 0.34, r * 0.36, heat[Max(0, index - 1)]);
-            if (index < 6) painter.Glow(q.X, q.Y, r * 2.4 + 2, color, 0.18 * k);
         }
 
         private void DrawSmoke(Particle q, double k)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using static System.Math;
 using static PixelFx.PixelPainter;
+using static PixelFx.FireDrawing;
 
 namespace PixelFx
 {
@@ -13,8 +14,6 @@ namespace PixelFx
         internal const float Duration = 3.9f;
         private const double End = 3.9, Tau = 2 * PI, Squash = 0.2, Charge = 0.32, Spread = 0.75, Reach = 92;
         private static readonly uint Soot = Hex(0x0d0a12), SootEdge = Hex(0x17121d), Warm = Rgb(255, 176, 96);
-        private static readonly (double Width, double Height, int Heat)[] HotLayers =
-            { (1, 1, 6), (0.76, 0.86, 4), (0.54, 0.68, 2), (0.3, 0.42, 0) };
         private static readonly (double Width, double Height, int Heat)[] BackLayers =
             { (1, 1, 7), (0.76, 0.86, 5), (0.54, 0.68, 3), (0.3, 0.42, 2) };
         private static readonly (double Width, double Height, int Heat)[] EmberLayers =
@@ -171,20 +170,7 @@ namespace PixelFx
                 if (height < 1) continue;
                 var layers = u < 0.3 && !back ? HotLayers : u < 0.65 ? BackLayers : EmberLayers;
                 double width = site.Width * (0.6 + 0.4 * fade), sweep = Noise(time * 2.2, site.Seed + 40) * 1.5 - site.X * 0.02;
-                foreach (var layer in layers)
-                {
-                    double extent = height * layer.Height;
-                    for (int r = 0; r <= extent; r++)
-                    {
-                        double v = r / Max(1, extent);
-                        double half = width * layer.Width * Pow(1 - v, 0.85) * Min(1, (r + 1.5) / 3.5)
-                            + Noise(time * 9 + r * 0.45, site.Seed) * 0.5;
-                        if (half < 0.3) continue;
-                        double center = site.X + sweep * v * v * layer.Height + Noise(time * 4 + r * 0.2, site.Seed + 7) * v * 1.1;
-                        int y = Round(site.Y - r), right = Round(center + half);
-                        for (int x = Round(center - half); x <= right; x++) painter.Dot(x, y, heat[layer.Heat]);
-                    }
-                }
+                Tongue(painter, site.X, site.Y, height, width, sweep, time, site.Seed, heat, layers);
             }
         }
 
@@ -229,12 +215,5 @@ namespace PixelFx
             return k * k * (3 - 2 * k);
         }
 
-        private static double Noise(double x, int seed)
-        {
-            int cell = (int)Floor(x);
-            double f = x - cell, u = f * f * (3 - 2 * f);
-            double a = PixelFxRandom.At(cell, seed), b = PixelFxRandom.At(cell + 1, seed);
-            return (a + (b - a) * u) * 2 - 1;
-        }
     }
 }
