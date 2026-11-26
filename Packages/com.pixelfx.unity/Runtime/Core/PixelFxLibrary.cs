@@ -51,6 +51,7 @@ namespace PixelFx
         public const string FireballThrow = "moves/fireball-throw";
         public const string Fireball = "fire/fireball";
         public const string FireRing = "fire/fire-ring";
+        public const string FlamePillar = "fire/flame-pillar";
         public const string DivineShield = "holy/divine-shield";
         public const string Blessing = "holy/blessing";
         public const string Halo = "holy/halo";
@@ -172,6 +173,16 @@ namespace PixelFx
                 DefaultActorAnchor = PixelFxLayer.Lower,
                 CreateLayerRenderer = DivineShieldEffect.CreateLayerRenderer,
                 UsesProjectedActorMask = true,
+            },
+            new PixelFxDefinition(FlamePillar, "Flame Pillar", "Fire", 5, 0.8f, FlamePillarEffect.Duration,
+                (FlamePillarEffect.Width, FlamePillarEffect.Height, FlamePillarEffect.OriginX, FlamePillarEffect.OriginY),
+                FlamePillarEffect.CreateRenderer,
+                0x4a1712, 0x8a1f17, 0xc9281f, 0xf2561d, 0xff8a2a, 0xffc23d, 0xffe26b, 0xfff3a6, 0xffffff)
+            {
+                LayeredStage = PixelFxStage.Single,
+                DefaultActorAnchor = PixelFxLayer.Lower,
+                CreateLayerRenderer = FlamePillarEffect.CreateLayerRenderer,
+                KeepUpright = true,
             },
             new PixelFxDefinition(FireRing, "Fire Ring", "Fire", 6, 20f / 30, FireRingEffect.Duration,
                 (FireRingEffect.Width, FireRingEffect.Height, FireRingEffect.OriginX, FireRingEffect.OriginY),

@@ -40,7 +40,7 @@ namespace PixelFx.Samples
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Layered Fireball")) PlayLayeredFireball();
-            if (GUILayout.Button("Ground Slam")) PlayGroundSlam();
+            if (GUILayout.Button("Ground Slam")) PlayGroundEffect(PixelFxLibrary.GroundSlam);
             if (GUILayout.Button("Hit Flash")) PlayHitFlash();
             if (GUILayout.Button("Divine Shield")) PlayActorBuff(PixelFxLibrary.DivineShield);
             if (GUILayout.Button("Blessing")) PlayActorBuff(PixelFxLibrary.Blessing);
@@ -54,6 +54,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Sunburst")) Play(PixelFxLibrary.Sunburst);
             if (GUILayout.Button("Feather Burst")) PlayActorBuff(PixelFxLibrary.FeatherBurst);
             if (GUILayout.Button("Resurrection")) PlayActorBuff(PixelFxLibrary.Resurrection);
+            if (GUILayout.Button("Flame Pillar")) PlayGroundEffect(PixelFxLibrary.FlamePillar);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
@@ -82,14 +83,14 @@ namespace PixelFx.Samples
             current.Completed += _ => HideActors();
         }
 
-        private void PlayGroundSlam()
+        private void PlayGroundEffect(string effect)
         {
             current?.Stop();
             EnsureActors();
             caster.enabled = true;
             target.enabled = false;
             caster.transform.position = transform.position + new Vector3(3.3f, 1, 0);
-            current = player.Play(PixelFxLibrary.GroundSlam, context: new PixelFxContext
+            current = player.Play(effect, context: new PixelFxContext
             {
                 Binding = new PixelFxActorBinding(caster, PixelFxLayer.Middle, follow: false)
             });
