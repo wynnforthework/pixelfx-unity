@@ -55,6 +55,7 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Feather Burst")) PlayActorBuff(PixelFxLibrary.FeatherBurst);
             if (GUILayout.Button("Resurrection")) PlayActorBuff(PixelFxLibrary.Resurrection);
             if (GUILayout.Button("Flame Pillar")) PlayGroundEffect(PixelFxLibrary.FlamePillar);
+            if (GUILayout.Button("Fire Tornado")) PlayGroundEffect(PixelFxLibrary.FireTornado);
             GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
