@@ -14,8 +14,6 @@ namespace PixelFx
         internal const float Duration = 3.9f;
         private const double End = 3.9, Tau = 2 * PI, Squash = 0.2, Charge = 0.32, Spread = 0.75, Reach = 92;
         private static readonly uint Soot = Hex(0x0d0a12), SootEdge = Hex(0x17121d), Warm = Rgb(255, 176, 96);
-        private static readonly (double Width, double Height, int Heat)[] BackLayers =
-            { (1, 1, 7), (0.76, 0.86, 5), (0.54, 0.68, 3), (0.3, 0.42, 2) };
         private static readonly (double Width, double Height, int Heat)[] EmberLayers =
             { (1, 1, 7), (0.7, 0.8, 6), (0.4, 0.55, 5) };
 
