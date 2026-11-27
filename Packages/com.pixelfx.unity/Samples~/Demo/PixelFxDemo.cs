@@ -9,6 +9,7 @@ namespace PixelFx.Samples
         private PixelFxPlayer player;
         private PixelFxPlayback current;
         private SpriteRenderer caster, target;
+        private Transform casterMouth;
         private Sprite actorSprite;
         private Texture2D actorTexture;
         private float layeredTime;
@@ -57,6 +58,9 @@ namespace PixelFx.Samples
             if (GUILayout.Button("Flame Pillar")) PlayGroundEffect(PixelFxLibrary.FlamePillar);
             if (GUILayout.Button("Fire Tornado")) PlayGroundEffect(PixelFxLibrary.FireTornado);
             GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Fire Breath", GUILayout.ExpandWidth(false))) PlayFireBreath();
+            GUILayout.EndHorizontal();
             GUILayout.EndArea();
         }
 
@@ -98,6 +102,21 @@ namespace PixelFx.Samples
             current.Completed += _ => HideActors();
         }
 
+        private void PlayFireBreath()
+        {
+            current?.Stop();
+            EnsureActors();
+            caster.enabled = true;
+            target.enabled = false;
+            caster.transform.position = transform.position + new Vector3(-0.8f, -0.65f, 0);
+            current = player.Play(PixelFxLibrary.FireBreath, context: new PixelFxContext
+            {
+                Direction = Vector2.right,
+                Binding = new PixelFxActorBinding(caster, PixelFxLayer.Upper, casterMouth),
+            });
+            current.Completed += _ => HideActors();
+        }
+
         private void PlayHitFlash()
         {
             current?.Stop();
@@ -131,6 +150,9 @@ namespace PixelFx.Samples
             CreateActorSprite();
             caster = CreateActor("Caster A", new Color32(111, 188, 240, 255), 10);
             target = CreateActor("Target B", new Color32(138, 211, 149, 255), 20);
+            casterMouth = new GameObject("Mouth").transform;
+            casterMouth.SetParent(caster.transform, false);
+            casterMouth.localPosition = new Vector3(0.28f, 0.65f, 0);
         }
 
         private void Update()
