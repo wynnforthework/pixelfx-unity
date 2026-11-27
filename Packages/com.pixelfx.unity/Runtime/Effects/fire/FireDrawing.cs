@@ -12,7 +12,7 @@ namespace PixelFx
             { (1, 1, 7), (0.76, 0.86, 5), (0.54, 0.68, 3), (0.3, 0.42, 2) };
 
         internal static void Tongue(PixelPainter painter, double x, double y, double height, double width,
-            double sweep, double time, int seed, uint[] heat, (double Width, double Height, int Heat)[] layers, int period = 0)
+            double sweep, double time, int seed, uint[] heat, (double Width, double Height, int Heat)[] layers, double period = 0)
         {
             if (height < 1) return;
             foreach (var layer in layers)
@@ -69,9 +69,36 @@ namespace PixelFx
             return (a + (b - a) * u) * 2 - 1;
         }
 
-        private static double TongueNoise(double time, int rate, double offset, int seed, int period) =>
-            period == 0 ? Noise(time * rate + offset, seed)
-                : PeriodicNoise(time / period * (period * rate) + offset, period * rate, seed);
+        internal static double LoopNoise(double time, double rate, int seed, double period, double offset = 0)
+        {
+            int cells = Max(1, Round(period * rate));
+            return PeriodicNoise(time / period * cells + offset, cells, seed);
+        }
+
+        private static double TongueNoise(double time, int rate, double offset, int seed, double period) =>
+            period == 0 ? Noise(time * rate + offset, seed) : LoopNoise(time, rate, seed, period, offset);
+
+        internal static void Blade(PixelPainter painter, double x, double y, double ux, double uy, double length,
+            double width, double bend, double time, int seed, uint[] heat, double period, double wobble = 1.1)
+        {
+            if (length < 1) return;
+            double nx = -uy, ny = ux;
+            foreach (var layer in HotLayers)
+            {
+                double extent = length * layer.Height;
+                for (double r = 0; r <= extent; r += 0.5)
+                {
+                    double u = r / Max(1, extent);
+                    double half = width * layer.Width * Pow(1 - u, 0.85) * Min(1, (r + 1.5) / 3.5)
+                        + LoopNoise(time, 9, seed, period, r * 0.45) * 0.5;
+                    if (half < 0.3) continue;
+                    double offset = bend * u * u * layer.Height + LoopNoise(time, 4, seed + 7, period, r * 0.2) * u * wobble;
+                    double cx = x + ux * r + nx * offset, cy = y + uy * r + ny * offset;
+                    for (double q = -half; q <= half; q += 0.5)
+                        painter.Dot(cx + nx * q, cy + ny * q, heat[layer.Heat]);
+                }
+            }
+        }
 
         private static int Round(double x) => (int)Floor(x + 0.5);
     }
